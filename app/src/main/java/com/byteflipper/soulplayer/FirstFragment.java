@@ -67,10 +67,10 @@ public class FirstFragment extends Fragment {
 
         binding.recview.setLayoutManager(new LinearLayoutManager(requireContext())); // Выбор менеджера компоновки
 
-        MusicScanner musicScanner = new MusicScanner();
-        List<MusicScanner.MusicTrack> musicTracks = musicScanner.scanMusicFiles(requireContext());
-        adapter = new MusicAdapter(requireContext(), musicTracks, track -> {
-            player.play(track.path);
+        MusicRepository musicRepository = new MusicRepository(requireContext());
+        List<MusicRepository.Song> allSongs = musicRepository.getSongs();
+        adapter = new MusicAdapter(requireContext(), allSongs, track -> {
+            player.play(track.data);
         });
         binding.recview.setAdapter(adapter);
 

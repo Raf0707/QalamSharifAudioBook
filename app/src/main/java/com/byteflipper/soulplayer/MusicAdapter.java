@@ -20,13 +20,13 @@ import java.util.List;
 
 public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> {
 
-    private List<MusicScanner.MusicTrack> musicTracks;
+    private List<MusicRepository.Song> songs;
     private Context context;
     private OnItemClickListener onItemClickListener;
 
-    public MusicAdapter(Context context, List<MusicScanner.MusicTrack> musicTracks, OnItemClickListener onItemClickListener) {
+    public MusicAdapter(Context context, List<MusicRepository.Song> songs, OnItemClickListener onItemClickListener) {
         this.context = context;
-        this.musicTracks = musicTracks != null ? musicTracks : new ArrayList<>();
+        this.songs = songs != null ? songs : new ArrayList<>();
         this.onItemClickListener = onItemClickListener;
     }
 
@@ -40,14 +40,14 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        MusicScanner.MusicTrack track = musicTracks.get(position);
-        holder.titleTextView.setText(track.title);
-        holder.artistTextView.setText(track.artist);
+        MusicRepository.Song song = songs.get(position);
+        holder.titleTextView.setText(song.title);
+        holder.artistTextView.setText(song.artistName);
 
         // Получение обложки альбома
         Bitmap albumArt = null;
         try {
-            albumArt = getAlbumArt(track.path);
+            albumArt = getAlbumArt(song.data);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -60,14 +60,14 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
 
         holder.itemView.setOnClickListener(v -> {
             if (onItemClickListener != null) {
-                onItemClickListener.onItemClick(track);
+                onItemClickListener.onItemClick(song);
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return musicTracks.size();
+        return songs.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -84,7 +84,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
     }
 
     public interface OnItemClickListener {
-        void onItemClick(MusicScanner.MusicTrack track);
+        void onItemClick(MusicRepository.Song song);
     }
 
     // Метод для получения обложки альбома
