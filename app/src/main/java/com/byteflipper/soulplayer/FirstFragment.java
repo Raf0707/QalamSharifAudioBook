@@ -33,20 +33,19 @@ public class FirstFragment extends Fragment {
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // Создайте MusicPlayer в onCreateView()
         player = new MusicPlayer(getContext(), binding.seekBar, binding.currentTimeTextView, binding.totalTimeTextView,
-                binding.songTitleTextView, binding.artistTextView, binding.albumTextView, binding.coverImageView);
+                binding.songTitleTextView, binding.artistTextView, binding.albumTextView, binding.coverImageView, binding.playButton);
 
         binding.playButton.setOnClickListener(v -> {
             if (player.isPlaying()) {
                 player.pause();
-                binding.playButton.setImageResource(R.drawable.play_arrow_24px);
+                binding.playButton.setIconResource(R.drawable.play_arrow_24px);
             } else if (player.isPaused()) {
                 player.resume();
-                binding.playButton.setImageResource(R.drawable.pause_24px);
+                binding.playButton.setIconResource(R.drawable.pause_24px);
             } else {
                 player.play(binding.link.getText().toString());
-                binding.playButton.setImageResource(R.drawable.pause_24px);
+                binding.playButton.setIconResource(R.drawable.pause_24px);
             }
         });
 
@@ -55,10 +54,15 @@ public class FirstFragment extends Fragment {
             if (player != null) {
                 player.release();
                 player = new MusicPlayer(getContext(), binding.seekBar, binding.currentTimeTextView, binding.totalTimeTextView,
-                        binding.songTitleTextView, binding.artistTextView, binding.albumTextView, binding.coverImageView);
+                        binding.songTitleTextView, binding.artistTextView, binding.albumTextView, binding.coverImageView, binding.playButton);
             }
-            binding.playButton.setImageResource(R.drawable.play_arrow_24px);
+            binding.playButton.setIconResource(R.drawable.play_arrow_24px);
             return true;
+        });
+
+        binding.repeatButton.setOnClickListener(v -> {
+            player.setLooping(!player.isLooping());
+            binding.repeatButton.setIconResource(player.isLooping() ? R.drawable.repeat_one_24px : R.drawable.repeat_24px);
         });
 
         binding.recview.setLayoutManager(new LinearLayoutManager(requireContext())); // Выбор менеджера компоновки

@@ -12,6 +12,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.button.MaterialButton;
+
 import java.io.IOException;
 
 public class MusicPlayer {
@@ -25,11 +27,13 @@ public class MusicPlayer {
     private TextView artistTextView;
     private TextView albumTextView;
     private ImageView coverImageView;
+    private MaterialButton playButton;
     private boolean isPaused = false;
+    private boolean isLooping = false;
 
     public MusicPlayer(Context context, SeekBar seekBar, TextView currentTimeTextView,
                        TextView totalTimeTextView, TextView songTitleTextView, TextView artistTextView,
-                       TextView albumTextView, ImageView coverImageView) {
+                       TextView albumTextView, ImageView coverImageView, MaterialButton playButton) {
         this.context = context;
         this.seekBar = seekBar;
         this.currentTimeTextView = currentTimeTextView;
@@ -38,9 +42,11 @@ public class MusicPlayer {
         this.artistTextView = artistTextView;
         this.albumTextView = albumTextView;
         this.coverImageView = coverImageView;
+        this.playButton = playButton;
         mediaPlayer = new MediaPlayer();
         handler = new Handler();
         setupSeekBar();
+        setupMediaPlayer();
     }
 
     // Метод для настройки SeekBar
@@ -62,11 +68,25 @@ public class MusicPlayer {
         });
     }
 
+    private void setupMediaPlayer() {
+        mediaPlayer.setOnCompletionListener(mp -> {
+            if (isLooping) {
+                mp.seekTo(0);
+                mp.start();
+            } else {
+                stop();
+                if (playButton != null) {
+                    playButton.setIconResource(R.drawable.play_arrow_24px);
+                }
+            }
+        });
+    }
+
     // Метод для проигрывания аудиофайла по пути (локальному или по URL)
     public void play(String source) {
+        Log.d("MusicPlayer", "Playing: " + source); // Добавим лог для отладки
         try {
             mediaPlayer.reset();
-            Log.d("TAG", "Attempting to play source: " + source);
 
             // Проверка, локальный ли файл или URL
             if (source.startsWith("http") || source.startsWith("https")) {
@@ -99,16 +119,14 @@ public class MusicPlayer {
             artistTextView.setText(artist != null ? artist : "Неизвестный исполнитель");
             albumTextView.setText(album != null ? album : "Неизвестный альбом");
 
-            // Обработка обложки
             if (coverArt != null) {
                 Bitmap bitmap = BitmapFactory.decodeByteArray(coverArt, 0, coverArt.length);
                 coverImageView.setImageBitmap(bitmap);
             } else {
-                // Установка placeholder обложки
                 coverImageView.setImageResource(R.mipmap.ic_launcher);
             }
         } catch (IOException e) {
-            Log.e("TAG", "Failed to play the audio", e);
+            e.printStackTrace();
             Toast.makeText(context, "Failed to play the audio", Toast.LENGTH_SHORT).show();
         }
     }
@@ -121,6 +139,7 @@ public class MusicPlayer {
         stopUpdatingProgress();
         seekBar.setProgress(0);
         updateCurrentTime(0);
+        isPaused = false;
     }
 
     // Метод для паузы
@@ -235,5 +254,13 @@ public class MusicPlayer {
 
             isPaused = false;
         }
+    }
+
+    public void setLooping(boolean looping) {
+        isLooping = looping;
+    }
+
+    public boolean isLooping() {
+        return isLooping;
     }
 }
