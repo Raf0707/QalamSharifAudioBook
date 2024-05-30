@@ -41,7 +41,7 @@ public class FirstFragment extends Fragment {
         adapter = new MusicAdapter(requireContext(), allSongs, track -> {
             playerViewModel.currentSong.setValue(track);
             playerViewModel.play(track.data);
-            NowPlayingFragment nowPlayingFragment = new NowPlayingFragment();
+            FullPlayer nowPlayingFragment = new FullPlayer();
             nowPlayingFragment.show(getParentFragmentManager(), "NowPlayingFragment");
         });
         binding.recview.setAdapter(adapter);

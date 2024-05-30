@@ -18,6 +18,7 @@ import androidx.lifecycle.OnLifecycleEvent;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.slider.Slider;
 import com.google.android.material.textview.MaterialTextView;
 
 import java.io.IOException;
@@ -29,7 +30,7 @@ public class MusicPlayer implements LifecycleObserver {
     private final Context context;
     private MediaPlayer mediaPlayer;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private SeekBar seekBar;
+    private Slider seekBar;
     private MaterialTextView currentTimeTextView;
     private MaterialTextView totalTimeTextView;
     private MaterialTextView songTitleTextView;
@@ -40,7 +41,7 @@ public class MusicPlayer implements LifecycleObserver {
     private boolean isPaused = false;
     private boolean isLooping = false;
 
-    private MusicPlayer(Context context, SeekBar seekBar, MaterialTextView currentTimeTextView,
+    private MusicPlayer(Context context, Slider seekBar, MaterialTextView currentTimeTextView,
                         MaterialTextView totalTimeTextView, MaterialTextView songTitleTextView,
                         MaterialTextView artistTextView, MaterialTextView albumTextView,
                         ShapeableImageView coverImageView, MaterialButton playButton) {
@@ -60,7 +61,7 @@ public class MusicPlayer implements LifecycleObserver {
         setupMediaPlayer();
     }
 
-    public static MusicPlayer getInstance(Context context, SeekBar seekBar,
+    public static MusicPlayer getInstance(Context context, Slider seekBar,
                                           MaterialTextView currentTimeTextView,
                                           MaterialTextView totalTimeTextView,
                                           MaterialTextView songTitleTextView,
@@ -94,21 +95,10 @@ public class MusicPlayer implements LifecycleObserver {
     }
 
     private void setupSeekBar() {
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    mediaPlayer.seekTo(progress);
-                    updateCurrentTime(progress);
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
+        seekBar.addOnChangeListener((slider, value, fromUser) -> { // изменен listener
+            if (fromUser) {
+                mediaPlayer.seekTo((int) value);
+                updateCurrentTime((int) value);
             }
         });
     }
@@ -144,6 +134,7 @@ public class MusicPlayer implements LifecycleObserver {
                 updateTotalTime(mediaPlayer.getDuration());
                 isPaused = false;
                 playButton.setIconResource(R.drawable.pause_24px);
+                seekBar.setValueTo(mediaPlayer.getDuration());
             });
 
             mediaPlayer.prepareAsync();
@@ -179,7 +170,7 @@ public class MusicPlayer implements LifecycleObserver {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
             stopUpdatingProgress();
-            seekBar.setProgress(0);
+            seekBar.setValue(0);
             updateCurrentTime(0);
             isPaused = false;
             playButton.setIconResource(R.drawable.play_arrow_24px);
@@ -236,7 +227,7 @@ public class MusicPlayer implements LifecycleObserver {
         public void run() {
             if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                 int currentPosition = getCurrentPosition();
-                seekBar.setProgress(currentPosition);
+                seekBar.setValue(currentPosition);
                 updateCurrentTime(currentPosition);
                 handler.postDelayed(this, 1000);
             }

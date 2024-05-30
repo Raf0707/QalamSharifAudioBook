@@ -16,12 +16,13 @@ import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.byteflipper.soulplayer.databinding.FragmentNowPlayingBinding;
+import com.byteflipper.soulplayer.databinding.FullPlayerBinding;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import java.io.IOException;
 
-public class NowPlayingFragment extends DialogFragment {
-    private FragmentNowPlayingBinding binding;
+public class FullPlayer extends DialogFragment {
+    private FullPlayerBinding binding;
     private MusicPlayer musicPlayer;
     private PlayerViewModel playerViewModel;
 
@@ -37,7 +38,7 @@ public class NowPlayingFragment extends DialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = FragmentNowPlayingBinding.inflate(inflater, container, false);
+        binding = FullPlayerBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
@@ -48,73 +49,69 @@ public class NowPlayingFragment extends DialogFragment {
         playerViewModel = new ViewModelProvider(requireActivity()).get(PlayerViewModel.class);
         musicPlayer = playerViewModel.getPlayerInstance(
                 requireContext(),
-                binding.seekBarr,
-                binding.currentTimeTextView,
-                binding.totalTimeTextView,
-                binding.songTitleTextView,
-                binding.artistTextView,
-                binding.albumTextView,
-                binding.coverImageView,
-                binding.playButton
+                binding.sliderVert,
+                binding.position,
+                binding.duration,
+                binding.fullSongName,
+                binding.fullSongArtist,
+                binding.fullAlbumName,
+                binding.fullSheetCover,
+                binding.sheetMidButton
         );
 
         musicPlayer.attachLifecycleOwner(getViewLifecycleOwner()); // Присоединяем плеер к жизненному циклу
 
         playerViewModel.currentSong.observe(getViewLifecycleOwner(), song -> {
-            binding.songTitleTextView.setText(song.title);
-            binding.artistTextView.setText(song.artistName);
-            binding.albumTextView.setText(song.albumName);
-            binding.seekBarr.setMax((int) song.duration);
+            binding.fullAlbumName.setText(song.title);
+            binding.fullSongArtist.setText(song.artistName);
+            binding.fullAlbumName.setText(song.albumName);
+            //binding.seekBarr.setMax((int) song.duration);
 
             try {
                 Bitmap albumArt = getAlbumArt(song.data);
                 if (albumArt != null) {
-                    binding.coverImageView.setImageBitmap(albumArt);
+                    binding.fullSheetCover.setImageBitmap(albumArt);
                 } else {
-                    binding.coverImageView.setImageResource(R.mipmap.ic_launcher);
+                    binding.fullSheetCover.setImageResource(R.mipmap.ic_launcher);
                 }
             } catch (IOException e) {
                 Log.e("NowPlayingFragment", "Ошибка загрузки обложки", e);
-                binding.coverImageView.setImageResource(R.mipmap.ic_launcher);
+                binding.fullSheetCover.setImageResource(R.mipmap.ic_launcher);
             }
 
             // Воспроизведение при выборе песни
             musicPlayer.play(song.data);
         });
 
-        binding.playButton.setOnClickListener(v -> {
+        binding.sheetMidButton.setOnClickListener(v -> {
             if (musicPlayer.isPlaying()) {
                 musicPlayer.pause();
-                binding.playButton.setIconResource(R.drawable.play_arrow_24px);
+                binding.sheetMidButton.setIconResource(R.drawable.play_arrow_24px);
             } else {
                 musicPlayer.resume();
-                binding.playButton.setIconResource(R.drawable.pause_24px);
+                binding.sheetMidButton.setIconResource(R.drawable.pause_24px);
             }
         });
 
-        binding.nextButton.setOnClickListener(v -> {
+        binding.sheetNextSong.setOnClickListener(v -> {
             // TODO: Реализовать переход к следующей песне
         });
 
-        binding.previousButton.setOnClickListener(v -> {
+        binding.sheetPreviousSong.setOnClickListener(v -> {
             // TODO: Реализовать переход к предыдущей песне
         });
 
-        binding.shuffleButton.setOnClickListener(v -> {
+        binding.sheetLoop.setOnClickListener(v -> {
             musicPlayer.setLooping(!musicPlayer.isLooping());
             updateShuffleButtonIcon();
-        });
-
-        binding.repeatButton.setOnClickListener(v -> {
-            // TODO: Реализовать переключение режимов повтора
         });
     }
 
     private void updateShuffleButtonIcon() {
         if (musicPlayer.isLooping()) {
-            binding.shuffleButton.setIconResource(R.drawable.shuffle_on_24px);
+            binding.sheetRandom.setIconResource(R.drawable.shuffle_on_24px);
         } else {
-            binding.shuffleButton.setIconResource(R.drawable.shuffle_24px);
+            binding.sheetRandom.setIconResource(R.drawable.shuffle_24px);
         }
     }
 

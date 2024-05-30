@@ -1,7 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="SoulPlayerTheme" parent="BaseSoulPlayerTheme">
-
+        <!-- fixes some UI issues on MIUI devices -->
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
+        <!-- true edge-to-edge, no black bars in display notch -->
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges</item>
     </style>
 
     <style name="BaseSoulPlayerTheme" parent="Theme.Material3.DynamicColors.Light">
@@ -54,6 +57,15 @@
 
         <item name="android:statusBarColor">?attr/colorSurface</item>
         <item name="android:navigationBarColor">?attr/colorSurfaceContainer</item>
+    </style>
+
+    <style name="MediaPlayer.ProgressBar" parent="@style/Widget.AppCompat.ProgressBar.Horizontal">
+        <item name="android:thumb">@drawable/media_seekbar_thumb</item>
+        <item name="android:thumbTint">?android:attr/textColorPrimary</item>
+        <item name="android:progressTint">?android:attr/textColorPrimary</item>
+        <item name="android:progressBackgroundTint">?android:attr/textColorTertiary</item>
+        <item name="android:clickable">true</item>
+        <item name="android:splitTrack">false</item>
     </style>
 
     <!--style name="FFSensitivitiesTheme.SplashScreen" parent="Theme.SplashScreen">

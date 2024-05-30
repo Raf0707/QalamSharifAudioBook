@@ -8,13 +8,14 @@ import androidx.lifecycle.ViewModel;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.slider.Slider;
 import com.google.android.material.textview.MaterialTextView;
 
 public class PlayerViewModel extends ViewModel {
     private MusicPlayer musicPlayer;
     public MutableLiveData<MusicRepository.Song> currentSong = new MutableLiveData<>();
 
-    public MusicPlayer getPlayerInstance(Context context, SeekBar seekBar, MaterialTextView currentTimeTextView,
+    public MusicPlayer getPlayerInstance(Context context, Slider seekBar, MaterialTextView currentTimeTextView,
                                          MaterialTextView totalTimeTextView, MaterialTextView songTitleTextView, MaterialTextView artistTextView,
                                          MaterialTextView albumTextView, ShapeableImageView coverImageView, MaterialButton playButton) {
         if (musicPlayer == null) {
