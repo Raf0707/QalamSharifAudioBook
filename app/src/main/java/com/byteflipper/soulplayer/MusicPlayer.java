@@ -6,34 +6,45 @@ import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
-import android.widget.ImageView;
 import android.widget.SeekBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.OnLifecycleEvent;
+
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.textview.MaterialTextView;
 
 import java.io.IOException;
 
-public class MusicPlayer {
-    private Context context;
+public class MusicPlayer implements LifecycleObserver {
+
+    private static MusicPlayer instance;
+
+    private final Context context;
     private MediaPlayer mediaPlayer;
-    private Handler handler;
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private SeekBar seekBar;
-    private TextView currentTimeTextView;
-    private TextView totalTimeTextView;
-    private TextView songTitleTextView;
-    private TextView artistTextView;
-    private TextView albumTextView;
-    private ImageView coverImageView;
+    private MaterialTextView currentTimeTextView;
+    private MaterialTextView totalTimeTextView;
+    private MaterialTextView songTitleTextView;
+    private MaterialTextView artistTextView;
+    private MaterialTextView albumTextView;
+    private ShapeableImageView coverImageView;
     private MaterialButton playButton;
     private boolean isPaused = false;
     private boolean isLooping = false;
 
-    public MusicPlayer(Context context, SeekBar seekBar, TextView currentTimeTextView,
-                       TextView totalTimeTextView, TextView songTitleTextView, TextView artistTextView,
-                       TextView albumTextView, ImageView coverImageView, MaterialButton playButton) {
+    private MusicPlayer(Context context, SeekBar seekBar, MaterialTextView currentTimeTextView,
+                        MaterialTextView totalTimeTextView, MaterialTextView songTitleTextView,
+                        MaterialTextView artistTextView, MaterialTextView albumTextView,
+                        ShapeableImageView coverImageView, MaterialButton playButton) {
+
         this.context = context;
         this.seekBar = seekBar;
         this.currentTimeTextView = currentTimeTextView;
@@ -44,12 +55,44 @@ public class MusicPlayer {
         this.coverImageView = coverImageView;
         this.playButton = playButton;
         mediaPlayer = new MediaPlayer();
-        handler = new Handler();
+
         setupSeekBar();
         setupMediaPlayer();
     }
 
-    // Метод для настройки SeekBar
+    public static MusicPlayer getInstance(Context context, SeekBar seekBar,
+                                          MaterialTextView currentTimeTextView,
+                                          MaterialTextView totalTimeTextView,
+                                          MaterialTextView songTitleTextView,
+                                          MaterialTextView artistTextView,
+                                          MaterialTextView albumTextView,
+                                          ShapeableImageView coverImageView,
+                                          MaterialButton playButton) {
+        if (instance == null) {
+            instance = new MusicPlayer(context, seekBar, currentTimeTextView, totalTimeTextView,
+                    songTitleTextView, artistTextView, albumTextView, coverImageView, playButton);
+        }
+        return instance;
+    }
+
+    public void attachLifecycleOwner(LifecycleOwner owner) {
+        owner.getLifecycle().addObserver(this);
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    public void onActivityPaused() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            pause();
+        }
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    public void onActivityResumed() {
+        if (mediaPlayer != null && isPaused) {
+            resume();
+        }
+    }
+
     private void setupSeekBar() {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -61,10 +104,12 @@ public class MusicPlayer {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
         });
     }
 
@@ -82,28 +127,27 @@ public class MusicPlayer {
         });
     }
 
-    // Метод для проигрывания аудиофайла по пути (локальному или по URL)
     public void play(String source) {
-        Log.d("MusicPlayer", "Playing: " + source); // Добавим лог для отладки
+        Log.d("MusicPlayer", "Playing: " + source);
         try {
             mediaPlayer.reset();
 
-            // Проверка, локальный ли файл или URL
             if (source.startsWith("http") || source.startsWith("https")) {
-                // Проигрывание по URL
                 mediaPlayer.setDataSource(source);
             } else {
-                // Проигрывание локального файла
                 mediaPlayer.setDataSource(source);
             }
 
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-            startUpdatingProgress();
-            updateTotalTime(mediaPlayer.getDuration());
-            isPaused = false;
+            mediaPlayer.setOnPreparedListener(mp -> {
+                mp.start();
+                startUpdatingProgress();
+                updateTotalTime(mediaPlayer.getDuration());
+                isPaused = false;
+                playButton.setIconResource(R.drawable.pause_24px);
+            });
 
-            // Получение информации о треке с помощью MediaMetadataRetriever
+            mediaPlayer.prepareAsync();
+
             MediaMetadataRetriever retriever = new MediaMetadataRetriever();
             retriever.setDataSource(source);
 
@@ -114,7 +158,6 @@ public class MusicPlayer {
 
             retriever.release();
 
-            // Установка информации о треке
             songTitleTextView.setText(title != null ? title : "Неизвестное название");
             artistTextView.setText(artist != null ? artist : "Неизвестный исполнитель");
             albumTextView.setText(album != null ? album : "Неизвестный альбом");
@@ -125,132 +168,106 @@ public class MusicPlayer {
             } else {
                 coverImageView.setImageResource(R.mipmap.ic_launcher);
             }
+
         } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(context, "Failed to play the audio", Toast.LENGTH_SHORT).show();
+            Log.e("MusicPlayer", "Ошибка воспроизведения", e);
+            Toast.makeText(context, "Ошибка воспроизведения", Toast.LENGTH_SHORT).show();
         }
     }
 
-    // Метод для остановки проигрывания
     public void stop() {
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+        if (mediaPlayer != null) {
             mediaPlayer.stop();
+            stopUpdatingProgress();
+            seekBar.setProgress(0);
+            updateCurrentTime(0);
+            isPaused = false;
+            playButton.setIconResource(R.drawable.play_arrow_24px);
         }
-        stopUpdatingProgress();
-        seekBar.setProgress(0);
-        updateCurrentTime(0);
-        isPaused = false;
     }
 
-    // Метод для паузы
     public void pause() {
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
             isPaused = true;
+            playButton.setIconResource(R.drawable.play_arrow_24px);
         }
     }
 
-    // Метод для возобновления
     public void resume() {
         if (mediaPlayer != null && isPaused) {
             mediaPlayer.start();
             isPaused = false;
             startUpdatingProgress();
+            playButton.setIconResource(R.drawable.pause_24px);
         }
     }
 
-    // Метод для получения текущего прогресса воспроизведения
     private int getCurrentPosition() {
-        return mediaPlayer.getCurrentPosition();
+        return mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0;
     }
 
-    // Метод для получения общей продолжительности аудиофайла
     private int getDuration() {
-        return mediaPlayer.getDuration();
+        return mediaPlayer != null ? mediaPlayer.getDuration() : 0;
     }
 
-    // Метод для обновления текущего времени воспроизведения
     private void updateCurrentTime(int progress) {
         int minutes = progress / 60000;
         int seconds = (progress % 60000) / 1000;
         currentTimeTextView.setText(String.format("%02d:%02d", minutes, seconds));
     }
 
-    // Метод для обновления общей продолжительности аудиофайла
     private void updateTotalTime(int duration) {
         int minutes = duration / 60000;
         int seconds = (duration % 60000) / 1000;
         totalTimeTextView.setText(String.format("%02d:%02d", minutes, seconds));
     }
 
-    // Метод для запуска обновления прогресса воспроизведения
     private void startUpdatingProgress() {
-        handler.postDelayed(updateProgressTask, 1000); // Обновлять каждую секунду
+        handler.postDelayed(updateProgressTask, 1000);
     }
 
-    // Метод для остановки обновления прогресса воспроизведения
     private void stopUpdatingProgress() {
         handler.removeCallbacks(updateProgressTask);
     }
 
-    // Задача для обновления прогресса воспроизведения
-    private Runnable updateProgressTask = new Runnable() {
+    private final Runnable updateProgressTask = new Runnable() {
         @Override
         public void run() {
             if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                 int currentPosition = getCurrentPosition();
-                int duration = getDuration();
-                seekBar.setMax(duration);
                 seekBar.setProgress(currentPosition);
                 updateCurrentTime(currentPosition);
-                handler.postDelayed(this, 1000); // Повторно запускаем через 1 секунду
+                handler.postDelayed(this, 1000);
             }
         }
     };
 
-    // Метод для изменения громкости
     public void setVolume(float volume) {
         if (mediaPlayer != null) {
             mediaPlayer.setVolume(volume, volume);
         }
     }
 
-    // Метод для получения текущей громкости
     public float getVolume() {
-        if (mediaPlayer != null) {
-            //return mediaPlayer.getVolume()[0];
-        }
-        return 0.0f;
+        //return mediaPlayer != null ? mediaPlayer.getVolume() : 0.0f;
+        return 0;
     }
 
-    // Метод для проверки, приостановлено ли воспроизведение
     public boolean isPaused() {
         return isPaused;
     }
 
-    // Метод для проверки, идёт ли воспроизведение
     public boolean isPlaying() {
         return mediaPlayer != null && mediaPlayer.isPlaying();
     }
 
-    // Метод для освобождения ресурсов и остановки
     public void release() {
         if (mediaPlayer != null) {
-            stopUpdatingProgress(); // Остановка обновления прогресса
-            mediaPlayer.stop(); // Остановка воспроизведения
-            mediaPlayer.release(); // Освобождение ресурсов
-            mediaPlayer = null; // Обнуление ссылки на MediaPlayer
-
-            // Обнуление информации о треке
-            songTitleTextView.setText("Название песни");
-            artistTextView.setText("Исполнитель");
-            albumTextView.setText("Альбом");
-            coverImageView.setImageResource(R.mipmap.ic_launcher);
-
-            // Обнуление прогресса
-            seekBar.setProgress(0);
-            updateCurrentTime(0);
-            updateTotalTime(0);
+            stopUpdatingProgress();
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
 
             isPaused = false;
         }
@@ -258,6 +275,9 @@ public class MusicPlayer {
 
     public void setLooping(boolean looping) {
         isLooping = looping;
+        if (mediaPlayer != null) {
+            mediaPlayer.setLooping(looping);
+        }
     }
 
     public boolean isLooping() {

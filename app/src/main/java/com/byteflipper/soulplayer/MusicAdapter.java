@@ -44,7 +44,6 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
         holder.titleTextView.setText(song.title);
         holder.artistTextView.setText(song.artistName);
 
-        // Получение обложки альбома
         Bitmap albumArt = null;
         try {
             albumArt = getAlbumArt(song.data);
@@ -70,6 +69,11 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
         return songs.size();
     }
 
+    public void updateSongs(List<MusicRepository.Song> newSongs) {
+        songs = newSongs;
+        notifyDataSetChanged();
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView titleTextView;
         public TextView artistTextView;
@@ -77,9 +81,9 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            titleTextView = itemView.findViewById(R.id.titleTextView); // R.id.titleTextView - ID TextView для названия
-            artistTextView = itemView.findViewById(R.id.artistTextView); // R.id.artistTextView - ID TextView для исполнителя
-            albumArtImageView = itemView.findViewById(R.id.albumArtImageView); // ID ImageView для обложки
+            titleTextView = itemView.findViewById(R.id.titleTextView);
+            artistTextView = itemView.findViewById(R.id.artistTextView);
+            albumArtImageView = itemView.findViewById(R.id.albumArtImageView);
         }
     }
 
