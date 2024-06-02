@@ -1,7 +1,6 @@
-package com.byteflipper.soulplayer;
+package com.byteflipper.soulplayer.ui.fragments;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,26 +8,28 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.byteflipper.soulplayer.FullPlayer;
+import com.byteflipper.soulplayer.ui.adapters.MusicAdapter;
+import com.byteflipper.soulplayer.MusicRepository;
+import com.byteflipper.soulplayer.PlayerViewModel;
 import com.byteflipper.soulplayer.databinding.FragmentFirstBinding;
 
 import java.util.List;
 
-public class FirstFragment extends Fragment {
+public class FirstFragment extends Fragment implements MusicAdapter.OnItemClickListener {
     private FragmentFirstBinding binding;
     private MusicAdapter adapter;
     private PlayerViewModel playerViewModel;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
         binding = FragmentFirstBinding.inflate(inflater, container, false);
         return binding.getRoot();
-
     }
 
+    @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -38,14 +39,15 @@ public class FirstFragment extends Fragment {
 
         MusicRepository musicRepository = new MusicRepository(requireContext());
         List<MusicRepository.Song> allSongs = musicRepository.getSongs();
-        adapter = new MusicAdapter(requireContext(), allSongs, track -> {
-            playerViewModel.currentSong.setValue(track);
-            playerViewModel.play(track.data);
+        adapter = new MusicAdapter(requireContext(), allSongs, this);
+        binding.recview.setAdapter(adapter);
+
+        binding.play.setOnClickListener(v -> {
+            String songPath = String.valueOf(binding.link.getText());
+            playerViewModel.play(songPath);
             FullPlayer nowPlayingFragment = new FullPlayer();
             nowPlayingFragment.show(getParentFragmentManager(), "NowPlayingFragment");
         });
-        binding.recview.setAdapter(adapter);
-
     }
 
     @Override
@@ -54,4 +56,11 @@ public class FirstFragment extends Fragment {
         binding = null;
     }
 
+    @Override
+    public void onItemClick(MusicRepository.Song song) {
+        playerViewModel.currentSong.setValue(song);
+        playerViewModel.play(song.data);
+        FullPlayer nowPlayingFragment = new FullPlayer();
+        nowPlayingFragment.show(getParentFragmentManager(), "NowPlayingFragment");
+    }
 }

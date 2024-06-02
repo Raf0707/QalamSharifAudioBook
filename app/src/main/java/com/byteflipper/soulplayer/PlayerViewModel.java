@@ -1,41 +1,39 @@
 package com.byteflipper.soulplayer;
 
-import android.content.Context;
-import android.widget.SeekBar;
-
+import android.app.Application;
+import android.content.Intent;
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.imageview.ShapeableImageView;
-import com.google.android.material.slider.Slider;
-import com.google.android.material.textview.MaterialTextView;
+import com.byteflipper.soulplayer.logic.PlaybackService;
 
-public class PlayerViewModel extends ViewModel {
-    private MusicPlayer musicPlayer;
+public class PlayerViewModel extends AndroidViewModel {
     public MutableLiveData<MusicRepository.Song> currentSong = new MutableLiveData<>();
 
-    public MusicPlayer getPlayerInstance(Context context, Slider seekBar, MaterialTextView currentTimeTextView,
-                                         MaterialTextView totalTimeTextView, MaterialTextView songTitleTextView, MaterialTextView artistTextView,
-                                         MaterialTextView albumTextView, ShapeableImageView coverImageView, MaterialButton playButton) {
-        if (musicPlayer == null) {
-            musicPlayer = MusicPlayer.getInstance(context, seekBar, currentTimeTextView, totalTimeTextView,
-                    songTitleTextView, artistTextView, albumTextView, coverImageView, playButton);
-        }
-        return musicPlayer;
+    public PlayerViewModel(@NonNull Application application) {
+        super(application);
     }
 
     public void play(String songPath) {
-        if (musicPlayer != null) {
-            musicPlayer.play(songPath);
-        }
+        Application application = getApplication();
+        Intent intent = new Intent(application, PlaybackService.class);
+        intent.setAction("PLAY");
+        intent.putExtra("SONG_PATH", songPath);
+        application.startService(intent);
     }
 
-    @Override
-    protected void onCleared() {
-        super.onCleared();
-        if (musicPlayer != null) {
-            musicPlayer.release();
-        }
+    public void pause() {
+        Application application = getApplication();
+        Intent intent = new Intent(application, PlaybackService.class);
+        intent.setAction("PAUSE");
+        application.startService(intent);
+    }
+
+    public void stop() {
+        Application application = getApplication();
+        Intent intent = new Intent(application, PlaybackService.class);
+        intent.setAction("STOP");
+        application.startService(intent);
     }
 }

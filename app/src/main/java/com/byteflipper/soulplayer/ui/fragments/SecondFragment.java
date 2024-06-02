@@ -1,4 +1,4 @@
-package com.byteflipper.soulplayer;
+package com.byteflipper.soulplayer.ui.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.byteflipper.soulplayer.R;
 import com.byteflipper.soulplayer.databinding.FragmentSecondBinding;
 
 public class SecondFragment extends Fragment {

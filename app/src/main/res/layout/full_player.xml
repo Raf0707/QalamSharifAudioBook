@@ -153,7 +153,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:value="0"
                 app:labelBehavior="gone"
                 app:thumbHeight="0dp"
                 app:thumbWidth="0dp"

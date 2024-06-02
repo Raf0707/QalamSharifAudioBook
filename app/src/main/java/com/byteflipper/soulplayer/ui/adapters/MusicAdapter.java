@@ -1,4 +1,4 @@
-package com.byteflipper.soulplayer;
+package com.byteflipper.soulplayer.ui.adapters;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -14,6 +14,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.byteflipper.soulplayer.MusicRepository;
+import com.byteflipper.soulplayer.R;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,11 +24,9 @@ import java.util.List;
 public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> {
 
     private List<MusicRepository.Song> songs;
-    private Context context;
     private OnItemClickListener onItemClickListener;
 
     public MusicAdapter(Context context, List<MusicRepository.Song> songs, OnItemClickListener onItemClickListener) {
-        this.context = context;
         this.songs = songs != null ? songs : new ArrayList<>();
         this.onItemClickListener = onItemClickListener;
     }
@@ -34,7 +35,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.music_item, parent, false); // R.layout.music_item - ваш макет элемента списка
+                .inflate(R.layout.music_item, parent, false);
         return new ViewHolder(view);
     }
 
@@ -53,7 +54,6 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
         if (albumArt != null) {
             holder.albumArtImageView.setImageBitmap(albumArt);
         } else {
-            // Установите изображение по умолчанию, если обложка не найдена
             holder.albumArtImageView.setImageResource(R.mipmap.ic_launcher);
         }
 
@@ -91,7 +91,6 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
         void onItemClick(MusicRepository.Song song);
     }
 
-    // Метод для получения обложки альбома
     private Bitmap getAlbumArt(String path) throws IOException {
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         try {

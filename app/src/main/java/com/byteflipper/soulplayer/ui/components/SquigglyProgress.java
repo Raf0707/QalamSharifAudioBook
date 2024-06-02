@@ -13,9 +13,7 @@ import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
 import android.view.animation.PathInterpolator;
 
-import androidx.annotation.VisibleForTesting;
-
-import com.byteflipper.soulplayer.utils.CalculationUtils;
+import com.byteflipper.soulplayer.logic.utils.CalculationUtils;
 
 public class SquigglyProgress extends Drawable {
 

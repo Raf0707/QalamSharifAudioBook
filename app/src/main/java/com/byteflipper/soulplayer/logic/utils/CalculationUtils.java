@@ -1,4 +1,4 @@
-package com.byteflipper.soulplayer.utils;
+package com.byteflipper.soulplayer.logic.utils;
 
 import android.graphics.Color;
 

@@ -1,4 +1,4 @@
-package com.byteflipper.soulplayer;
+package com.byteflipper.soulplayer.ui.fragments;
 
 import android.os.Bundle;
 

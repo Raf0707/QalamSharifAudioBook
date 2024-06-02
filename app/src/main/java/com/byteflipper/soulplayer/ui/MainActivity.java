@@ -1,4 +1,4 @@
-package com.byteflipper.soulplayer;
+package com.byteflipper.soulplayer.ui;
 
 import android.os.Bundle;
 import android.view.Menu;
@@ -13,6 +13,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.byteflipper.soulplayer.R;
 import com.byteflipper.soulplayer.databinding.ActivityMainBinding;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;

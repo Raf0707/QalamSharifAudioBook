@@ -1,106 +1,34 @@
 package com.byteflipper.soulplayer;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.SeekBar;
-import android.widget.Toast;
-
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleObserver;
-import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.OnLifecycleEvent;
-
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.imageview.ShapeableImageView;
-import com.google.android.material.slider.Slider;
-import com.google.android.material.textview.MaterialTextView;
 
 import java.io.IOException;
 
-public class MusicPlayer implements LifecycleObserver {
+public class MusicPlayer {
 
     private static MusicPlayer instance;
-
-    private final Context context;
     private MediaPlayer mediaPlayer;
-    private final Handler handler = new Handler(Looper.getMainLooper());
-    private Slider seekBar;
-    private MaterialTextView currentTimeTextView;
-    private MaterialTextView totalTimeTextView;
-    private MaterialTextView songTitleTextView;
-    private MaterialTextView artistTextView;
-    private MaterialTextView albumTextView;
-    private ShapeableImageView coverImageView;
-    private MaterialButton playButton;
     private boolean isPaused = false;
     private boolean isLooping = false;
+    private Context context;
+    private OnPlaybackChangeListener onPlaybackChangeListener;
+    private Handler handler = new Handler(Looper.getMainLooper());
 
-    private MusicPlayer(Context context, Slider seekBar, MaterialTextView currentTimeTextView,
-                        MaterialTextView totalTimeTextView, MaterialTextView songTitleTextView,
-                        MaterialTextView artistTextView, MaterialTextView albumTextView,
-                        ShapeableImageView coverImageView, MaterialButton playButton) {
-
+    private MusicPlayer(Context context) {
         this.context = context;
-        this.seekBar = seekBar;
-        this.currentTimeTextView = currentTimeTextView;
-        this.totalTimeTextView = totalTimeTextView;
-        this.songTitleTextView = songTitleTextView;
-        this.artistTextView = artistTextView;
-        this.albumTextView = albumTextView;
-        this.coverImageView = coverImageView;
-        this.playButton = playButton;
         mediaPlayer = new MediaPlayer();
-
-        setupSeekBar();
         setupMediaPlayer();
     }
 
-    public static MusicPlayer getInstance(Context context, Slider seekBar,
-                                          MaterialTextView currentTimeTextView,
-                                          MaterialTextView totalTimeTextView,
-                                          MaterialTextView songTitleTextView,
-                                          MaterialTextView artistTextView,
-                                          MaterialTextView albumTextView,
-                                          ShapeableImageView coverImageView,
-                                          MaterialButton playButton) {
+    public static MusicPlayer getInstance(Context context) {
         if (instance == null) {
-            instance = new MusicPlayer(context, seekBar, currentTimeTextView, totalTimeTextView,
-                    songTitleTextView, artistTextView, albumTextView, coverImageView, playButton);
+            instance = new MusicPlayer(context);
         }
         return instance;
-    }
-
-    public void attachLifecycleOwner(LifecycleOwner owner) {
-        owner.getLifecycle().addObserver(this);
-    }
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    public void onActivityPaused() {
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            pause();
-        }
-    }
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    public void onActivityResumed() {
-        if (mediaPlayer != null && isPaused) {
-            resume();
-        }
-    }
-
-    private void setupSeekBar() {
-        seekBar.addOnChangeListener((slider, value, fromUser) -> { // изменен listener
-            if (fromUser) {
-                mediaPlayer.seekTo((int) value);
-                updateCurrentTime((int) value);
-            }
-        });
     }
 
     private void setupMediaPlayer() {
@@ -110,70 +38,42 @@ public class MusicPlayer implements LifecycleObserver {
                 mp.start();
             } else {
                 stop();
-                if (playButton != null) {
-                    playButton.setIconResource(R.drawable.play_arrow_24px);
+                if (onPlaybackChangeListener != null) {
+                    onPlaybackChangeListener.onStopped();
                 }
+            }
+        });
+        mediaPlayer.setOnSeekCompleteListener(mp -> {
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onProgressChanged(mediaPlayer.getCurrentPosition());
             }
         });
     }
 
+    public void setOnPlaybackChangeListener(OnPlaybackChangeListener listener) {
+        this.onPlaybackChangeListener = listener;
+    }
+
     public void play(String source) {
-        Log.d("MusicPlayer", "Playing: " + source);
         try {
             mediaPlayer.reset();
-
-            if (source.startsWith("http") || source.startsWith("https")) {
-                mediaPlayer.setDataSource(source);
-            } else {
-                mediaPlayer.setDataSource(source);
+            mediaPlayer.setDataSource(source);
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+            isPaused = false;
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onStarted();
             }
-
-            mediaPlayer.setOnPreparedListener(mp -> {
-                mp.start();
-                startUpdatingProgress();
-                updateTotalTime(mediaPlayer.getDuration());
-                isPaused = false;
-                playButton.setIconResource(R.drawable.pause_24px);
-                seekBar.setValueTo(mediaPlayer.getDuration());
-            });
-
-            mediaPlayer.prepareAsync();
-
-            MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-            retriever.setDataSource(source);
-
-            String title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-            String artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-            String album = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
-            byte[] coverArt = retriever.getEmbeddedPicture();
-
-            retriever.release();
-
-            songTitleTextView.setText(title != null ? title : "Неизвестное название");
-            artistTextView.setText(artist != null ? artist : "Неизвестный исполнитель");
-            albumTextView.setText(album != null ? album : "Неизвестный альбом");
-
-            if (coverArt != null) {
-                Bitmap bitmap = BitmapFactory.decodeByteArray(coverArt, 0, coverArt.length);
-                coverImageView.setImageBitmap(bitmap);
-            } else {
-                coverImageView.setImageResource(R.mipmap.ic_launcher);
-            }
-
         } catch (IOException e) {
-            Log.e("MusicPlayer", "Ошибка воспроизведения", e);
-            Toast.makeText(context, "Ошибка воспроизведения", Toast.LENGTH_SHORT).show();
+            Log.e("MusicPlayer", "Error playing audio", e);
         }
     }
 
     public void stop() {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
-            stopUpdatingProgress();
-            seekBar.setValue(0);
-            updateCurrentTime(0);
+            mediaPlayer.reset();
             isPaused = false;
-            playButton.setIconResource(R.drawable.play_arrow_24px);
         }
     }
 
@@ -181,7 +81,9 @@ public class MusicPlayer implements LifecycleObserver {
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
             isPaused = true;
-            playButton.setIconResource(R.drawable.play_arrow_24px);
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onPaused();
+            }
         }
     }
 
@@ -189,78 +91,9 @@ public class MusicPlayer implements LifecycleObserver {
         if (mediaPlayer != null && isPaused) {
             mediaPlayer.start();
             isPaused = false;
-            startUpdatingProgress();
-            playButton.setIconResource(R.drawable.pause_24px);
-        }
-    }
-
-    private int getCurrentPosition() {
-        return mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0;
-    }
-
-    private int getDuration() {
-        return mediaPlayer != null ? mediaPlayer.getDuration() : 0;
-    }
-
-    private void updateCurrentTime(int progress) {
-        int minutes = progress / 60000;
-        int seconds = (progress % 60000) / 1000;
-        currentTimeTextView.setText(String.format("%02d:%02d", minutes, seconds));
-    }
-
-    private void updateTotalTime(int duration) {
-        int minutes = duration / 60000;
-        int seconds = (duration % 60000) / 1000;
-        totalTimeTextView.setText(String.format("%02d:%02d", minutes, seconds));
-    }
-
-    private void startUpdatingProgress() {
-        handler.postDelayed(updateProgressTask, 1000);
-    }
-
-    private void stopUpdatingProgress() {
-        handler.removeCallbacks(updateProgressTask);
-    }
-
-    private final Runnable updateProgressTask = new Runnable() {
-        @Override
-        public void run() {
-            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                int currentPosition = getCurrentPosition();
-                seekBar.setValue(currentPosition);
-                updateCurrentTime(currentPosition);
-                handler.postDelayed(this, 1000);
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onResumed();
             }
-        }
-    };
-
-    public void setVolume(float volume) {
-        if (mediaPlayer != null) {
-            mediaPlayer.setVolume(volume, volume);
-        }
-    }
-
-    public float getVolume() {
-        //return mediaPlayer != null ? mediaPlayer.getVolume() : 0.0f;
-        return 0;
-    }
-
-    public boolean isPaused() {
-        return isPaused;
-    }
-
-    public boolean isPlaying() {
-        return mediaPlayer != null && mediaPlayer.isPlaying();
-    }
-
-    public void release() {
-        if (mediaPlayer != null) {
-            stopUpdatingProgress();
-            mediaPlayer.stop();
-            mediaPlayer.release();
-            mediaPlayer = null;
-
-            isPaused = false;
         }
     }
 
@@ -271,7 +104,48 @@ public class MusicPlayer implements LifecycleObserver {
         }
     }
 
-    public boolean isLooping() {
-        return isLooping;
+    public boolean isPaused() {
+        return isPaused;
+    }
+
+    public boolean isPlaying() {
+        return mediaPlayer != null && mediaPlayer.isPlaying();
+    }
+
+    public boolean isCompleted() {
+        return mediaPlayer != null && !mediaPlayer.isPlaying();
+    }
+
+    public void release() {
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+
+    public void seekTo(int position) {
+        if (mediaPlayer != null) {
+            mediaPlayer.seekTo(position);
+        }
+    }
+
+    public int getCurrentPosition() {
+        return mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0;
+    }
+
+    public int getDuration() {
+        return mediaPlayer != null ? mediaPlayer.getDuration() : 0;
+    }
+
+    public interface OnPlaybackChangeListener {
+        void onStarted();
+
+        void onPaused();
+
+        void onResumed();
+
+        void onStopped();
+
+        void onProgressChanged(int progress);
     }
 }
