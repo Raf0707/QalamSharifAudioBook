@@ -10,6 +10,7 @@ import com.byteflipper.soulplayer.logic.PlaybackService;
 
 public class PlayerViewModel extends AndroidViewModel {
     public MutableLiveData<MusicRepository.Song> currentSong = new MutableLiveData<>();
+    public MutableLiveData<Integer> songDuration = new MutableLiveData<>();
 
     public PlayerViewModel(@NonNull Application application) {
         super(application);
@@ -35,5 +36,9 @@ public class PlayerViewModel extends AndroidViewModel {
         Intent intent = new Intent(application, PlaybackService.class);
         intent.setAction("STOP");
         application.startService(intent);
+    }
+
+    public void updateSongDuration(int duration) {
+        songDuration.setValue(duration);
     }
 }

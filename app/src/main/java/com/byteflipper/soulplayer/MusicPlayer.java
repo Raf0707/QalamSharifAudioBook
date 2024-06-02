@@ -16,7 +16,6 @@ public class MusicPlayer {
     private boolean isLooping = false;
     private Context context;
     private OnPlaybackChangeListener onPlaybackChangeListener;
-    private Handler handler = new Handler(Looper.getMainLooper());
 
     private MusicPlayer(Context context) {
         this.context = context;
@@ -43,9 +42,33 @@ public class MusicPlayer {
                 }
             }
         });
+
         mediaPlayer.setOnSeekCompleteListener(mp -> {
             if (onPlaybackChangeListener != null) {
                 onPlaybackChangeListener.onProgressChanged(mediaPlayer.getCurrentPosition());
+            }
+        });
+
+        // Добавьте обработчик onBufferingUpdateListener
+        mediaPlayer.setOnBufferingUpdateListener((mp, percent) -> {
+            if (onPlaybackChangeListener != null) {
+                // Обновление progressPercentage, если необходимо (например, для отображения буферизации)
+                onPlaybackChangeListener.onProgressChanged((int) (((float) percent / 100) * mediaPlayer.getDuration()));
+            }
+        });
+
+        mediaPlayer.setOnInfoListener((mp, what, extra) -> {
+            if (what == MediaPlayer.MEDIA_INFO_BUFFERING_START) {
+                // Буферизация началась (если необходимо, покажите индикатор)
+            } else if (what == MediaPlayer.MEDIA_INFO_BUFFERING_END) {
+                // Буферизация завершена (если необходимо, скройте индикатор)
+            }
+            return false;
+        });
+
+        mediaPlayer.setOnPreparedListener((mp) -> {
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onDurationChanged(mp.getDuration()); // Вызов onDurationChanged после подготовки MediaPlayer
             }
         });
     }
@@ -147,5 +170,7 @@ public class MusicPlayer {
         void onStopped();
 
         void onProgressChanged(int progress);
+
+        void onDurationChanged(int duration);
     }
 }

@@ -158,7 +158,7 @@
                 app:thumbWidth="0dp"
                 app:thumbTrackGapSize="0dp"
                 app:trackHeight="8dp"
-                tools:value="0.5"
+                tools:value="0.05"
                 tools:visibility="visible" />
 
         </FrameLayout>

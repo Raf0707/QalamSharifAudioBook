@@ -1,5 +1,6 @@
 package com.byteflipper.soulplayer.ui.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.byteflipper.soulplayer.FullPlayer;
+import com.byteflipper.soulplayer.logic.PlaybackService;
 import com.byteflipper.soulplayer.ui.adapters.MusicAdapter;
 import com.byteflipper.soulplayer.MusicRepository;
 import com.byteflipper.soulplayer.PlayerViewModel;
@@ -43,8 +45,11 @@ public class FirstFragment extends Fragment implements MusicAdapter.OnItemClickL
         binding.recview.setAdapter(adapter);
 
         binding.play.setOnClickListener(v -> {
-            String songPath = String.valueOf(binding.link.getText());
-            playerViewModel.play(songPath);
+            Intent playIntent = new Intent(getContext(), PlaybackService.class);
+            playIntent.setAction("PLAY");
+            playIntent.putExtra("SONG_PATH", String.valueOf(binding.link.getText()));
+            requireContext().startService(playIntent);
+
             FullPlayer nowPlayingFragment = new FullPlayer();
             nowPlayingFragment.show(getParentFragmentManager(), "NowPlayingFragment");
         });
@@ -59,7 +64,11 @@ public class FirstFragment extends Fragment implements MusicAdapter.OnItemClickL
     @Override
     public void onItemClick(MusicRepository.Song song) {
         playerViewModel.currentSong.setValue(song);
-        playerViewModel.play(song.data);
+        Intent playIntent = new Intent(getContext(), PlaybackService.class);
+        playIntent.setAction("PLAY");
+        playIntent.putExtra("SONG_PATH", song.data);
+        requireContext().startService(playIntent);
+
         FullPlayer nowPlayingFragment = new FullPlayer();
         nowPlayingFragment.show(getParentFragmentManager(), "NowPlayingFragment");
     }

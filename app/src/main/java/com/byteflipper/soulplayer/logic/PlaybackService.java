@@ -42,17 +42,19 @@ public class PlaybackService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        String action = intent.getAction();
-        if ("PLAY".equals(action)) {
-            String songPath = intent.getStringExtra("SONG_PATH");
-            if (songPath != null) {
-                playMusic(songPath);
+        if (intent != null) {
+            String action = intent.getAction();
+            if ("PLAY".equals(action)) {
+                String songPath = intent.getStringExtra("SONG_PATH");
+                if (songPath != null) {
+                    playMusic(songPath);
+                }
+            } else if ("PAUSE".equals(action)) {
+                pauseMusic();
+            } else if ("STOP".equals(action)) {
+                stopMusic();
+                stopSelf();
             }
-        } else if ("PAUSE".equals(action)) {
-            pauseMusic();
-        } else if ("STOP".equals(action)) {
-            stopMusic();
-            stopSelf();
         }
         return START_STICKY;
     }

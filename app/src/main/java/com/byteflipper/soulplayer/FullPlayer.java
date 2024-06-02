@@ -32,7 +32,6 @@ public class FullPlayer extends DialogFragment {
         super.onCreate(savedInstanceState);
         MaterialToolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         toolbar.setVisibility(View.GONE);
-
         setStyle(DialogFragment.STYLE_NORMAL, R.style.BaseSoulPlayerTheme);
     }
 
@@ -47,11 +46,8 @@ public class FullPlayer extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         playerViewModel = new ViewModelProvider(requireActivity()).get(PlayerViewModel.class);
-
-        // Создаем экземпляр MusicPlayer
         musicPlayer = MusicPlayer.getInstance(requireContext());
 
-        // Слушатель кнопки play/pause
         binding.sheetMidButton.setOnClickListener(v -> {
             if (musicPlayer.isPlaying()) {
                 musicPlayer.pause();
@@ -67,44 +63,43 @@ public class FullPlayer extends DialogFragment {
         musicPlayer.setOnPlaybackChangeListener(new MusicPlayer.OnPlaybackChangeListener() {
             @Override
             public void onStarted() {
-                // Начало воспроизведения
                 startUpdatingProgress();
             }
 
             @Override
             public void onPaused() {
-                // Пауза воспроизведения
                 stopUpdatingProgress();
             }
 
             @Override
             public void onResumed() {
-                // Продолжение воспроизведения после паузы
                 startUpdatingProgress();
             }
 
             @Override
             public void onStopped() {
-                // Остановка воспроизведения
                 stopUpdatingProgress();
             }
 
             @Override
             public void onProgressChanged(int progress) {
-                // Обновление положения индикатора прогресса
                 binding.sliderVert.setValue(progress);
                 updateCurrentTime(progress);
             }
+
+            @Override
+            public void onDurationChanged(int duration) {
+                binding.sliderVert.setValueTo(duration);
+                playerViewModel.updateSongDuration(duration);
+            }
         });
 
-        // Слушатель изменений положения слайдера
         binding.sliderVert.addOnChangeListener((slider, value, fromUser) -> {
             if (fromUser) {
                 musicPlayer.seekTo((int) value);
             }
         });
 
-        // Обновление UI при изменении текущей песни
         playerViewModel.currentSong.observe(getViewLifecycleOwner(), song -> {
             if (song != null) {
                 binding.fullSongName.setText(song.title);
@@ -123,12 +118,17 @@ public class FullPlayer extends DialogFragment {
                     binding.fullSheetCover.setImageResource(R.mipmap.ic_launcher);
                 }
 
-                // Воспроизведение при выборе песни
                 if (musicPlayer.isPlaying() || musicPlayer.isPaused()) {
                     musicPlayer.stop();
                 }
                 musicPlayer.play(song.data);
                 updatePlayButtonIcon();
+            }
+        });
+
+        playerViewModel.songDuration.observe(getViewLifecycleOwner(), duration -> {
+            if (duration != null) {
+                binding.sliderVert.setValueTo(duration);
             }
         });
 
@@ -187,17 +187,14 @@ public class FullPlayer extends DialogFragment {
         binding.duration.setText(totalTime);
     }
 
-    // Метод для запуска обновления прогресса воспроизведения
     private void startUpdatingProgress() {
         handler.post(updateProgressTask);
     }
 
-    // Метод для остановки обновления прогресса воспроизведения
     private void stopUpdatingProgress() {
         handler.removeCallbacks(updateProgressTask);
     }
 
-    // Runnable для обновления прогресса воспроизведения
     private final Runnable updateProgressTask = new Runnable() {
         @Override
         public void run() {
@@ -205,10 +202,11 @@ public class FullPlayer extends DialogFragment {
                 int currentPosition = musicPlayer.getCurrentPosition();
                 int totalDuration = musicPlayer.getDuration();
                 if (totalDuration > 0) {
-                    float progressPercentage = ((float) currentPosition / totalDuration);
-                    binding.sliderVert.setValue(progressPercentage);
+                    binding.sliderVert.setValue(currentPosition);
+                    updateCurrentTime(currentPosition);
+                    updateTotalTime(totalDuration);
                 }
-                handler.postDelayed(this, 1000); // Повторяем через каждую секунду
+                handler.postDelayed(this, 100);
             }
         }
     };
