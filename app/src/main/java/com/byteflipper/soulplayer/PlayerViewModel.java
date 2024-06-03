@@ -9,7 +9,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.byteflipper.soulplayer.logic.PlaybackService;
 
 public class PlayerViewModel extends AndroidViewModel {
-    public MutableLiveData<MusicRepository.Song> currentSong = new MutableLiveData<>();
+    public MutableLiveData<MusicRepository.Track> currentSong = new MutableLiveData<MusicRepository.Track>();
     public MutableLiveData<Integer> songDuration = new MutableLiveData<>();
 
     public PlayerViewModel(@NonNull Application application) {

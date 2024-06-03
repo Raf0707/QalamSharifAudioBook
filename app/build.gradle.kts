@@ -43,14 +43,16 @@ dependencies {
     implementation(libs.legacy.support.v4)
     implementation(libs.recyclerview)
 
-    implementation("com.github.realgearinc:multi-sliding-up-panel:1.3.6")
-    implementation("androidx.constraintlayout:constraintlayout:2.2.0-alpha13")
+    implementation(libs.androidx.constraintlayout.v220alpha13)
 
-    implementation("androidx.media3:media3-exoplayer:1.3.1")
-    implementation("androidx.media3:media3-exoplayer-dash:1.3.1")
-    implementation("androidx.media3:media3-ui:1.3.1")
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.ui)
     implementation(libs.media3.session)
     implementation(libs.preference)
+
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

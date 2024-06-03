@@ -39,8 +39,8 @@ public class FirstFragment extends Fragment implements MusicAdapter.OnItemClickL
 
         binding.recview.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        MusicRepository musicRepository = new MusicRepository(requireContext());
-        List<MusicRepository.Song> allSongs = musicRepository.getSongs();
+        MusicRepository musicRepository = new MusicRepository();
+        List<MusicRepository.Track> allSongs = MusicRepository.getTracks(requireContext());
         adapter = new MusicAdapter(requireContext(), allSongs, this);
         binding.recview.setAdapter(adapter);
 
@@ -62,7 +62,7 @@ public class FirstFragment extends Fragment implements MusicAdapter.OnItemClickL
     }
 
     @Override
-    public void onItemClick(MusicRepository.Song song) {
+    public void onItemClick(MusicRepository.Track song) {
         playerViewModel.currentSong.setValue(song);
         Intent playIntent = new Intent(getContext(), PlaybackService.class);
         playIntent.setAction("PLAY");

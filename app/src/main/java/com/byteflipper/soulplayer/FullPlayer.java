@@ -103,8 +103,8 @@ public class FullPlayer extends DialogFragment {
         playerViewModel.currentSong.observe(getViewLifecycleOwner(), song -> {
             if (song != null) {
                 binding.fullSongName.setText(song.title);
-                binding.fullSongArtist.setText(song.artistName);
-                binding.fullAlbumName.setText(song.albumName);
+                binding.fullSongArtist.setText(song.artist);
+                binding.fullAlbumName.setText(song.album);
 
                 try {
                     Bitmap albumArt = getAlbumArt(song.data);

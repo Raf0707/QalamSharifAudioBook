@@ -4,9 +4,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.media.MediaMetadataRetriever;
-import android.os.Environment;
 import android.provider.MediaStore;
-import android.provider.MediaStore.Audio.AudioColumns;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,9 +12,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class MusicRepository {
-
-    public MusicRepository() {}
+public class MusicRepositoryBeta {
 
     public static class Track {
         public long id;
@@ -31,24 +27,24 @@ public class MusicRepository {
     public static class Artist {
         public long id;
         public String name;
-        public List<MusicRepository.Track> tracks = new ArrayList<>();
+        public List<Track> tracks = new ArrayList<>();
     }
 
     public static class Album {
         public long id;
         public String name;
         public String artist;
-        public List<MusicRepository.Track> tracks = new ArrayList<>();
+        public List<Track> tracks = new ArrayList<>();
     }
 
     public static class Playlist {
         public long id;
         public String name;
-        public List<MusicRepository.Track> tracks = new ArrayList<>();
+        public List<Track> tracks = new ArrayList<>();
     }
 
-    public static List<MusicRepository.Track> getTracks(Context context) {
-        List<MusicRepository.Track> tracks = new ArrayList<>();
+    public static List<Track> getTracks(Context context) {
+        List<Track> tracks = new ArrayList<>();
         ContentResolver contentResolver = context.getContentResolver();
         Cursor cursor = contentResolver.query(
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -59,7 +55,7 @@ public class MusicRepository {
         );
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                MusicRepository.Track track = new MusicRepository.Track();
+                Track track = new Track();
 
                 // Проверка индекса столбца
                 int titleIndex = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
@@ -95,8 +91,8 @@ public class MusicRepository {
         return tracks;
     }
 
-    public static List<MusicRepository.Artist> getArtists(Context context) {
-        List<MusicRepository.Artist> artists = new ArrayList<>();
+    public static List<Artist> getArtists(Context context) {
+        List<Artist> artists = new ArrayList<>();
         ContentResolver contentResolver = context.getContentResolver();
         Cursor cursor = contentResolver.query(
                 MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
@@ -107,7 +103,7 @@ public class MusicRepository {
         );
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                MusicRepository.Artist artist = new MusicRepository.Artist();
+                Artist artist = new Artist();
                 int idIndex = cursor.getColumnIndex(MediaStore.Audio.Artists._ID);
                 if (idIndex != -1) {
                     artist.id = cursor.getLong(idIndex);
@@ -123,8 +119,8 @@ public class MusicRepository {
         return artists;
     }
 
-    public static List<MusicRepository.Album> getAlbums(Context context) {
-        List<MusicRepository.Album> albums = new ArrayList<>();
+    public static List<Album> getAlbums(Context context) {
+        List<Album> albums = new ArrayList<>();
         ContentResolver contentResolver = context.getContentResolver();
         Cursor cursor = contentResolver.query(
                 MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
@@ -135,7 +131,7 @@ public class MusicRepository {
         );
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                MusicRepository.Album album = new MusicRepository.Album();
+                Album album = new Album();
                 int idIndex = cursor.getColumnIndex(MediaStore.Audio.Albums._ID);
                 if (idIndex != -1) {
                     album.id = cursor.getLong(idIndex);
@@ -155,8 +151,8 @@ public class MusicRepository {
         return albums;
     }
 
-    public static List<MusicRepository.Playlist> getPlaylists(Context context) {
-        List<MusicRepository.Playlist> playlists = new ArrayList<>();
+    public static List<Playlist> getPlaylists(Context context) {
+        List<Playlist> playlists = new ArrayList<>();
         ContentResolver contentResolver = context.getContentResolver();
         Cursor cursor = contentResolver.query(
                 MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
@@ -167,7 +163,7 @@ public class MusicRepository {
         );
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                MusicRepository.Playlist playlist = new MusicRepository.Playlist();
+                Playlist playlist = new Playlist();
                 int idIndex = cursor.getColumnIndex(MediaStore.Audio.Playlists._ID);
                 if (idIndex != -1) {
                     playlist.id = cursor.getLong(idIndex);
@@ -184,18 +180,18 @@ public class MusicRepository {
     }
 
     public static void populateData(Context context) {
-        List<MusicRepository.Track> tracks = getTracks(context);
-        List<MusicRepository.Artist> artists = getArtists(context);
-        List<MusicRepository.Album> albums = getAlbums(context);
-        List<MusicRepository.Playlist> playlists = getPlaylists(context);
+        List<Track> tracks = getTracks(context);
+        List<Artist> artists = getArtists(context);
+        List<Album> albums = getAlbums(context);
+        List<Playlist> playlists = getPlaylists(context);
 
-        for (MusicRepository.Track track : tracks) {
-            for (MusicRepository.Artist artist : artists) {
+        for (Track track : tracks) {
+            for (Artist artist : artists) {
                 if (track.artist.equals(artist.name)) {
                     artist.tracks.add(track);
                 }
             }
-            for (MusicRepository.Album album : albums) {
+            for (Album album : albums) {
                 if (track.album.equals(album.name)) {
                     album.tracks.add(track);
                 }
@@ -203,7 +199,7 @@ public class MusicRepository {
         }
 
         ContentResolver contentResolver = context.getContentResolver();
-        for (MusicRepository.Playlist playlist : playlists) {
+        for (Playlist playlist : playlists) {
             Cursor cursor = contentResolver.query(
                     MediaStore.Audio.Playlists.Members.getContentUri("external", playlist.id),
                     null,
@@ -216,7 +212,7 @@ public class MusicRepository {
                     int trackIdIndex = cursor.getColumnIndex(MediaStore.Audio.Playlists.Members.AUDIO_ID);
                     if (trackIdIndex != -1) {
                         long trackId = cursor.getLong(trackIdIndex);
-                        for (MusicRepository.Track track : tracks) {
+                        for (Track track : tracks) {
                             if (track.id == trackId) {
                                 playlist.tracks.add(track);
                                 break;
@@ -229,10 +225,10 @@ public class MusicRepository {
         }
 
         // Сортировка треков в альбомах по номерам
-        for (MusicRepository.Album album : albums) {
-            Collections.sort(album.tracks, new Comparator<MusicRepository.Track>() {
+        for (Album album : albums) {
+            Collections.sort(album.tracks, new Comparator<Track>() {
                 @Override
-                public int compare(MusicRepository.Track track1, MusicRepository.Track track2) {
+                public int compare(Track track1, Track track2) {
                     int trackNumber1 = 0;
                     try {
                         trackNumber1 = getTrackNumber(track1.data);

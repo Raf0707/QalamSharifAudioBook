@@ -13,7 +13,7 @@ import java.util.List;
 
 public class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.ViewHolder> {
 
-    private List<MusicRepository.Song> searchResults;
+    private List<MusicRepository.Track> searchResults;
     private OnItemClickListener onItemClickListener;
 
     public SearchResultsAdapter(OnItemClickListener onItemClickListener) {
@@ -31,7 +31,7 @@ public class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdap
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        MusicRepository.Song song = searchResults.get(position);
+        MusicRepository.Track song = searchResults.get(position);
         holder.songTitleTextView.setText(song.title);
 
         holder.itemView.setOnClickListener(v -> {
@@ -58,10 +58,10 @@ public class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdap
     }
 
     public interface OnItemClickListener {
-        void onItemClick(MusicRepository.Song song);
+        void onItemClick(MusicRepository.Track song);
     }
 
-    public void updateSearchResults(List<MusicRepository.Song> newResults) {
+    public void updateSearchResults(List<MusicRepository.Track> newResults) {
         this.searchResults = newResults;
         notifyDataSetChanged();
     }

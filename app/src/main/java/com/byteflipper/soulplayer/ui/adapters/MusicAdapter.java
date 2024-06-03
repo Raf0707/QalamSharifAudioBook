@@ -23,10 +23,10 @@ import java.util.List;
 
 public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> {
 
-    private List<MusicRepository.Song> songs;
+    private List<MusicRepository.Track> songs;
     private OnItemClickListener onItemClickListener;
 
-    public MusicAdapter(Context context, List<MusicRepository.Song> songs, OnItemClickListener onItemClickListener) {
+    public MusicAdapter(Context context, List<MusicRepository.Track> songs, OnItemClickListener onItemClickListener) {
         this.songs = songs != null ? songs : new ArrayList<>();
         this.onItemClickListener = onItemClickListener;
     }
@@ -41,9 +41,9 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        MusicRepository.Song song = songs.get(position);
+        MusicRepository.Track song = songs.get(position);
         holder.titleTextView.setText(song.title);
-        holder.artistTextView.setText(song.artistName);
+        holder.artistTextView.setText(song.artist);
 
         Bitmap albumArt = null;
         try {
@@ -69,7 +69,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
         return songs.size();
     }
 
-    public void updateSongs(List<MusicRepository.Song> newSongs) {
+    public void updateSongs(List<MusicRepository.Track> newSongs) {
         songs = newSongs;
         notifyDataSetChanged();
     }
@@ -88,7 +88,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
     }
 
     public interface OnItemClickListener {
-        void onItemClick(MusicRepository.Song song);
+        void onItemClick(MusicRepository.Track song);
     }
 
     private Bitmap getAlbumArt(String path) throws IOException {
