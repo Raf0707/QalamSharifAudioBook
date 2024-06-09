@@ -47,7 +47,7 @@ public class FirstFragment extends Fragment implements MusicAdapter.OnItemClickL
         binding.play.setOnClickListener(v -> {
             Intent playIntent = new Intent(getContext(), PlaybackService.class);
             playIntent.setAction("PLAY");
-            playIntent.putExtra("SONG_PATH", String.valueOf(binding.link.getText()));
+            playIntent.putExtra("source", String.valueOf(binding.link.getText()));
             requireContext().startService(playIntent);
 
             FullPlayer nowPlayingFragment = new FullPlayer();
@@ -64,10 +64,12 @@ public class FirstFragment extends Fragment implements MusicAdapter.OnItemClickL
     @Override
     public void onItemClick(MusicRepository.Track song) {
         playerViewModel.currentSong.setValue(song);
-        Intent playIntent = new Intent(getContext(), PlaybackService.class);
-        playIntent.setAction("PLAY");
-        playIntent.putExtra("SONG_PATH", song.data);
-        requireContext().startService(playIntent);
+        Intent serviceIntent = new Intent(getContext(), PlaybackService.class);
+        serviceIntent.setAction("PLAY");
+        serviceIntent.putExtra("source", song.data);
+        serviceIntent.putExtra("title", song.title); // Необязательно
+        serviceIntent.putExtra("artist", song.artist); // Необязательно
+        requireActivity().startService(serviceIntent);
 
         FullPlayer nowPlayingFragment = new FullPlayer();
         nowPlayingFragment.show(getParentFragmentManager(), "NowPlayingFragment");

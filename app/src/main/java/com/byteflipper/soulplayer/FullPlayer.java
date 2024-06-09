@@ -1,5 +1,6 @@
 package com.byteflipper.soulplayer;
 
+import android.content.ComponentName;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
@@ -15,8 +16,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.media3.session.SessionToken;
 
 import com.byteflipper.soulplayer.databinding.FullPlayerBinding;
+import com.byteflipper.soulplayer.logic.PlaybackService;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import java.io.IOException;
@@ -33,6 +36,10 @@ public class FullPlayer extends DialogFragment {
         MaterialToolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         toolbar.setVisibility(View.GONE);
         setStyle(DialogFragment.STYLE_NORMAL, R.style.BaseSoulPlayerTheme);
+
+        SessionToken sessionToken =
+                new SessionToken(requireContext(), new ComponentName(requireContext(), PlaybackService.class));
+
     }
 
     @Override

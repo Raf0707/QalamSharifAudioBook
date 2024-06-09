@@ -23,8 +23,7 @@
         tools:ignore="ScopedStorage" />
     <!-- Run music playback service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
-        android:minSdkVersion="34" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- Remove ExoPlayer permission as we don't network playback for now -->
     <uses-permission
@@ -46,9 +45,8 @@
 
         <service
             android:name=".logic.PlaybackService"
-            android:exported="true"
             android:foregroundServiceType="mediaPlayback"
-            tools:ignore="ExportedService">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
                 <action android:name="androidx.media3.session.MediaLibraryService" />

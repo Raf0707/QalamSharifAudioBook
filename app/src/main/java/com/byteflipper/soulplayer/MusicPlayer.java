@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class MusicPlayer {
 
-    private static MusicPlayer instance;
+    public static MusicPlayer instance;
     private MediaPlayer mediaPlayer;
     private boolean isPaused = false;
     private boolean isLooping = false;

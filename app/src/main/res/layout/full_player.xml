@@ -135,7 +135,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/textLayout">
 
-            <SeekBar
+            <!--SeekBar
                 android:id="@+id/slider_squiggly"
                 style="@style/MediaPlayer.ProgressBar"
                 android:layout_width="match_parent"
@@ -146,7 +146,7 @@
                 android:visibility="gone"
                 app:labelBehavior="gone"
                 tools:progress="20"
-                tools:visibility="visible" />
+                tools:visibility="visible" /-->
 
             <com.google.android.material.slider.Slider
                 android:id="@+id/slider_vert"
