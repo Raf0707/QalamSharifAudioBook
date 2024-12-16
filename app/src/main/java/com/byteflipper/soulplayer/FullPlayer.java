@@ -1,6 +1,7 @@
 package com.byteflipper.soulplayer;
 
 import android.content.ComponentName;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
@@ -21,25 +22,28 @@ import androidx.media3.session.SessionToken;
 import com.byteflipper.soulplayer.databinding.FullPlayerBinding;
 import com.byteflipper.soulplayer.logic.PlaybackService;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import java.io.IOException;
 
-public class FullPlayer extends DialogFragment {
+public class FullPlayer extends BottomSheetDialogFragment {
     private FullPlayerBinding binding;
     private PlayerViewModel playerViewModel;
     private MusicPlayer musicPlayer;
     private final Handler handler = new Handler(Looper.getMainLooper());
+
+    private int currentPosition = 0;  // Сохраняем позицию
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MaterialToolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         toolbar.setVisibility(View.GONE);
-        setStyle(DialogFragment.STYLE_NORMAL, R.style.BaseSoulPlayerTheme);
+        //setStyle(STYLE_NORMAL, com.google.android.material.R.style.Theme_Material3_DayNight_BottomSheetDialog);
+
 
         SessionToken sessionToken =
                 new SessionToken(requireContext(), new ComponentName(requireContext(), PlaybackService.class));
-
     }
 
     @Override
@@ -53,20 +57,52 @@ public class FullPlayer extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         playerViewModel = new ViewModelProvider(requireActivity()).get(PlayerViewModel.class);
-        musicPlayer = MusicPlayer.getInstance(requireContext());
+        musicPlayer = new MusicPlayer();
 
+        // Загрузка и проигрывание файла
+        String surahFileName = requireArguments().getString("SURAH_FILE_NAME", "");
+        try {
+            AssetFileDescriptor afd = requireContext().getAssets().openFd("quran/" + surahFileName);
+            musicPlayer.play(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            afd.close();
+        } catch (IOException e) {
+            Log.e("FullPlayer", "Ошибка загрузки файла суры: " + surahFileName, e);
+        }
+
+        // Обновление прогресса при воспроизведении
+        if (musicPlayer != null && musicPlayer.isPlaying()) {
+            currentPosition = musicPlayer.getCurrentPosition();
+            int totalDuration = musicPlayer.getDuration();
+            if (totalDuration > 0) {
+                binding.sliderVert.setValue(currentPosition);
+                binding.sliderVert.setValueTo(totalDuration);
+                updateCurrentTime(currentPosition);
+                updateTotalTime(totalDuration);
+            }
+        }
+        startUpdatingProgress();
+
+        // Обработчик для кнопки паузы/воспроизведения
         binding.sheetMidButton.setOnClickListener(v -> {
             if (musicPlayer.isPlaying()) {
+                // Сохраняем текущую позицию при паузе
+                currentPosition = musicPlayer.getCurrentPosition();
                 musicPlayer.pause();
             } else {
                 if (musicPlayer.isCompleted()) {
+                    // Если трек завершён, начинаем с начала
                     musicPlayer.seekTo(0);
+                    musicPlayer.resume();
+                } else {
+                    // Восстанавливаем позицию и продолжаем воспроизведение
+                    musicPlayer.seekTo(currentPosition);
+                    musicPlayer.resume();
                 }
-                musicPlayer.resume();
             }
             updatePlayButtonIcon();
         });
 
+        // Обработчик событий воспроизведения
         musicPlayer.setOnPlaybackChangeListener(new MusicPlayer.OnPlaybackChangeListener() {
             @Override
             public void onStarted() {
@@ -89,6 +125,16 @@ public class FullPlayer extends DialogFragment {
             }
 
             @Override
+            public void onCompleted() {
+                // Сбрасываем позицию на начало при завершении трека
+                currentPosition = 0;
+                musicPlayer.seekTo(0);
+                updatePlayButtonIcon();
+                binding.sliderVert.setValue(0);
+                updateCurrentTime(0);
+            }
+
+            @Override
             public void onProgressChanged(int progress) {
                 binding.sliderVert.setValue(progress);
                 updateCurrentTime(progress);
@@ -107,6 +153,7 @@ public class FullPlayer extends DialogFragment {
             }
         });
 
+        // Обновление данных песни
         playerViewModel.currentSong.observe(getViewLifecycleOwner(), song -> {
             if (song != null) {
                 binding.fullSongName.setText(song.title);
@@ -122,7 +169,7 @@ public class FullPlayer extends DialogFragment {
                     }
                 } catch (IOException e) {
                     Log.e("FullPlayer", "Ошибка загрузки обложки", e);
-                    binding.fullSheetCover.setImageResource(R.mipmap.ic_launcher);
+                    binding.fullSheetCover.setImageResource(R.drawable.quran_karim);
                 }
 
                 if (musicPlayer.isPlaying() || musicPlayer.isPaused()) {
@@ -139,6 +186,13 @@ public class FullPlayer extends DialogFragment {
             }
         });
 
+        updatePlayButtonIcon();
+    }
+
+    public void resumePlayback() {
+        // Восстанавливаем позицию и продолжаем воспроизведение
+        musicPlayer.seekTo(currentPosition);
+        musicPlayer.resume();
         updatePlayButtonIcon();
     }
 
@@ -166,20 +220,6 @@ public class FullPlayer extends DialogFragment {
         }
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (getDialog() != null && getDialog().getWindow() != null) {
-            getDialog().getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
-    }
-
     private void updateCurrentTime(int currentPosition) {
         int minutes = currentPosition / 60000;
         int seconds = (currentPosition % 60000) / 1000;
@@ -192,6 +232,29 @@ public class FullPlayer extends DialogFragment {
         int seconds = (duration % 60000) / 1000;
         String totalTime = String.format("%02d:%02d", minutes, seconds);
         binding.duration.setText(totalTime);
+    }
+
+    public void updateFile(String surahFileName) {
+        try {
+            AssetFileDescriptor afd = requireContext().getAssets().openFd("quran/" + surahFileName);
+            musicPlayer.play(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            afd.close();
+        } catch (IOException e) {
+            Log.e("FullPlayer", "Ошибка загрузки файла суры: " + surahFileName, e);
+        }
+    }
+
+    public void playFile(String surahFileName) {
+        // Логика воспроизведения нового файла
+        try {
+            AssetFileDescriptor afd = requireContext().getAssets().openFd("quran/" + surahFileName);
+            musicPlayer.play(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            afd.close();
+        } catch (IOException e) {
+            Log.e("FullPlayer", "Ошибка загрузки файла суры: " + surahFileName, e);
+        }
+        updatePlayButtonIcon();
+        startUpdatingProgress();
     }
 
     private void startUpdatingProgress() {

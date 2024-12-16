@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
 
 public class MusicPlayer {
@@ -16,6 +17,22 @@ public class MusicPlayer {
     private boolean isLooping = false;
     private Context context;
     private OnPlaybackChangeListener onPlaybackChangeListener;
+
+    public MusicPlayer() {
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setOnCompletionListener(mp -> onTrackCompleted());
+        mediaPlayer.setOnPreparedListener(mp -> {
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onDurationChanged(mp.getDuration());
+                onPlaybackChangeListener.onProgressChanged(mp.getCurrentPosition());
+            }
+            mp.start();  // Начало проигрывания
+            isPaused = false;
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onStarted();
+            }
+        });
+    }
 
     private MusicPlayer(Context context) {
         this.context = context;
@@ -71,6 +88,18 @@ public class MusicPlayer {
                 onPlaybackChangeListener.onDurationChanged(mp.getDuration()); // Вызов onDurationChanged после подготовки MediaPlayer
             }
         });
+
+        mediaPlayer.setOnPreparedListener(mp -> {
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onDurationChanged(mp.getDuration());
+                onPlaybackChangeListener.onProgressChanged(mp.getCurrentPosition());
+            }
+            mp.start();  // Начало проигрывания
+            isPaused = false;
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onStarted();
+            }
+        });
     }
 
     public void setOnPlaybackChangeListener(OnPlaybackChangeListener listener) {
@@ -92,11 +121,37 @@ public class MusicPlayer {
         }
     }
 
+    public void play(FileDescriptor fileDescriptor, long startOffset, long length) {
+        try {
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource(fileDescriptor, startOffset, length);
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void stop() {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
             mediaPlayer.reset();
             isPaused = false;
+        }
+    }
+
+    private void onTrackCompleted() {
+        if (onPlaybackChangeListener != null) {
+            onPlaybackChangeListener.onCompleted();
+        }
+        resetPlayer();
+    }
+
+    private void resetPlayer() {
+        mediaPlayer.seekTo(0);
+        isPaused = true;
+        if (onPlaybackChangeListener != null) {
+            onPlaybackChangeListener.onProgressChanged(0);
         }
     }
 
@@ -168,9 +223,11 @@ public class MusicPlayer {
         void onResumed();
 
         void onStopped();
+        void onCompleted();
 
         void onProgressChanged(int progress);
 
         void onDurationChanged(int duration);
     }
+
 }

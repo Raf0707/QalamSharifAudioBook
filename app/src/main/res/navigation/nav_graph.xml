@@ -3,34 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/FirstFragment">
+    app:startDestination="@id/surasFragment">
+
 
     <fragment
-        android:id="@+id/FirstFragment"
-        android:name="com.byteflipper.soulplayer.ui.fragments.FirstFragment"
-        android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_first">
-
-        <action
-            android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
-        <action
-            android:id="@+id/action_FirstFragment_to_nowPlayingFragment"
-            app:destination="@id/nowPlayingFragment" />
+        android:id="@+id/surasFragment"
+        android:name="com.byteflipper.soulplayer.ui.fragments.SurasFragment"
+        android:label="Коран аудио"
+        tools:layout="@layout/fragment_suras" >
     </fragment>
-    <fragment
-        android:id="@+id/SecondFragment"
-        android:name="com.byteflipper.soulplayer.ui.fragments.SecondFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
 
-        <action
-            android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
-    </fragment>
-    <fragment
-        android:id="@+id/nowPlayingFragment"
-        android:name="com.byteflipper.soulplayer.NowPlayingFragment"
-        android:label="fragment_now_playing"
-        tools:layout="@layout/fragment_now_playing" />
 </navigation>

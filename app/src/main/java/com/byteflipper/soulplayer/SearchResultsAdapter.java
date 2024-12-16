@@ -52,7 +52,7 @@ public class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdap
 
         public ViewHolder(View itemView) {
             super(itemView);
-            songTitleTextView = itemView.findViewById(R.id.song_title_text_view); // Используйте свой ID
+            songTitleTextView = itemView.findViewById(R.id.suraTitle); // Используйте свой ID
             // Инициализируйте другие элементы UI, если необходимо
         }
     }

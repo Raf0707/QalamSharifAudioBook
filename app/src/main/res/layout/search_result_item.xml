@@ -13,7 +13,7 @@
         android:src="@drawable/play_arrow_24px" />
 
     <TextView
-        android:id="@+id/song_title_text_view"
+        android:id="@+id/suraTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
