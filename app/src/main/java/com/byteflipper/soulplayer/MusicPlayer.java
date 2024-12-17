@@ -1,10 +1,15 @@
 package com.byteflipper.soulplayer;
 
+import static androidx.core.app.PendingIntentCompat.getActivity;
+
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+
+import com.google.android.material.textview.MaterialTextView;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -38,6 +43,7 @@ public class MusicPlayer {
         this.context = context;
         mediaPlayer = new MediaPlayer();
         setupMediaPlayer();
+        loadTrackData();
     }
 
     public static MusicPlayer getInstance(Context context) {
@@ -155,6 +161,17 @@ public class MusicPlayer {
         }
     }
 
+    public void pause(String filePath, Context context) {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+            saveTrackData(filePath, getCurrentPosition(), context);
+            isPaused = true;
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onPaused();
+            }
+        }
+    }
+
     public void pause() {
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
@@ -204,6 +221,62 @@ public class MusicPlayer {
     public void seekTo(int position) {
         if (mediaPlayer != null) {
             mediaPlayer.seekTo(position);
+        }
+    }
+
+    public void resumeFromCurrentPosition() {
+        if (mediaPlayer != null && !isPaused && !mediaPlayer.isPlaying()) {
+            // Восстановление позиции и возобновление воспроизведения
+            mediaPlayer.seekTo(getCurrentPosition());
+            mediaPlayer.start();
+            isPaused = false;
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onResumed();
+            }
+        }
+    }
+
+    public void saveTrackData(String trackPath, int position, Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("lastTrack", trackPath); // Сохраняем путь к последнему треку
+        editor.putInt("lastPosition", position);   // Сохраняем позицию в миллисекундах
+        editor.apply();
+    }
+
+
+
+    public void loadTrackData() {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE);
+        String trackPath = sharedPreferences.getString("lastTrack", "");  // Получаем путь последнего трека
+        int position = sharedPreferences.getInt("lastPosition", 0);         // Получаем последнюю сохраненную позицию
+
+        if (trackPath != null && position > 0) {
+            play(trackPath); // Загружаем трек
+            seekTo(position); // Устанавливаем позицию
+        } else {
+
+        }
+    }
+
+    public void loadTrackData(MaterialTextView statusTextView) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE);
+        String trackPath = sharedPreferences.getString("lastTrack", null);  // Получаем путь последнего трека
+        int position = sharedPreferences.getInt("lastPosition", 0);         // Получаем последнюю сохраненную позицию
+
+        if (trackPath != null && position > 0) {
+            play(trackPath); // Загружаем трек
+            seekTo(position); // Устанавливаем позицию
+        } else {
+            // Если нет сохраненного трека, отображаем текст "Ничего не воспроизводится"
+            // Устанавливаем значение позиции как 0
+            Log.d("MusicPlayer", "Nothing is playing. Displaying default text and setting position to 0.");
+
+            // Здесь вы можете обновить UI для отображения "Ничего не воспроизводится"
+            // Например:
+            statusTextView.setText("Ничего не воспроизводится");
+
+            seekTo(0); // Устанавливаем позицию на 0
         }
     }
 
