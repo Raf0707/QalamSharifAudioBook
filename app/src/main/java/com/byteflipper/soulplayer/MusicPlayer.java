@@ -1,12 +1,8 @@
 package com.byteflipper.soulplayer;
 
-import static androidx.core.app.PendingIntentCompat.getActivity;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import com.google.android.material.textview.MaterialTextView;
@@ -72,10 +68,8 @@ public class MusicPlayer {
             }
         });
 
-        // Добавьте обработчик onBufferingUpdateListener
         mediaPlayer.setOnBufferingUpdateListener((mp, percent) -> {
             if (onPlaybackChangeListener != null) {
-                // Обновление progressPercentage, если необходимо (например, для отображения буферизации)
                 onPlaybackChangeListener.onProgressChanged((int) (((float) percent / 100) * mediaPlayer.getDuration()));
             }
         });
@@ -89,21 +83,9 @@ public class MusicPlayer {
             return false;
         });
 
-        mediaPlayer.setOnPreparedListener((mp) -> {
-            if (onPlaybackChangeListener != null) {
-                onPlaybackChangeListener.onDurationChanged(mp.getDuration()); // Вызов onDurationChanged после подготовки MediaPlayer
-            }
-        });
-
         mediaPlayer.setOnPreparedListener(mp -> {
             if (onPlaybackChangeListener != null) {
                 onPlaybackChangeListener.onDurationChanged(mp.getDuration());
-                onPlaybackChangeListener.onProgressChanged(mp.getCurrentPosition());
-            }
-            mp.start();  // Начало проигрывания
-            isPaused = false;
-            if (onPlaybackChangeListener != null) {
-                onPlaybackChangeListener.onStarted();
             }
         });
     }
@@ -116,12 +98,14 @@ public class MusicPlayer {
         try {
             mediaPlayer.reset();
             mediaPlayer.setDataSource(source);
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-            isPaused = false;
-            if (onPlaybackChangeListener != null) {
-                onPlaybackChangeListener.onStarted();
-            }
+            mediaPlayer.prepareAsync(); // Асинхронная подготовка
+            mediaPlayer.setOnPreparedListener(mp -> {
+                mp.start();
+                isPaused = false;
+                if (onPlaybackChangeListener != null) {
+                    onPlaybackChangeListener.onStarted();
+                }
+            });
         } catch (IOException e) {
             Log.e("MusicPlayer", "Error playing audio", e);
         }
@@ -131,10 +115,76 @@ public class MusicPlayer {
         try {
             mediaPlayer.reset();
             mediaPlayer.setDataSource(fileDescriptor, startOffset, length);
-            mediaPlayer.prepare();
-            mediaPlayer.start();
+            mediaPlayer.prepareAsync(); // Асинхронная подготовка
+            mediaPlayer.setOnPreparedListener(mp -> {
+                mp.start();
+                isPaused = false;
+                if (onPlaybackChangeListener != null) {
+                    onPlaybackChangeListener.onStarted();
+                }
+            });
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void prepare(String source) {
+        try {
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource(source);
+            mediaPlayer.prepare();
+            isPaused = true;
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onDurationChanged(mediaPlayer.getDuration());
+            }
+        } catch (IOException e) {
+            Log.e("MusicPlayer", "Error preparing audio", e);
+        }
+    }
+
+    public void prepare(String source, int currentPosition) {
+        try {
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource(source);
+            mediaPlayer.prepare();
+            mediaPlayer.seekTo(currentPosition);
+            isPaused = true;
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onDurationChanged(mediaPlayer.getDuration());
+                onPlaybackChangeListener.onProgressChanged(currentPosition);
+            }
+        } catch (IOException e) {
+            Log.e("MusicPlayer", "Error preparing audio", e);
+        }
+    }
+
+    public void prepare(FileDescriptor fileDescriptor, long startOffset, long length, int currentPosition) {
+        try {
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource(fileDescriptor, startOffset, length);
+            mediaPlayer.prepare();
+            mediaPlayer.seekTo(currentPosition);
+            isPaused = true;
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onDurationChanged(mediaPlayer.getDuration());
+                onPlaybackChangeListener.onProgressChanged(currentPosition);
+            }
+        } catch (IOException e) {
+            Log.e("MusicPlayer", "Error preparing audio", e);
+        }
+    }
+
+    public void prepare(FileDescriptor fileDescriptor, long startOffset, long length) {
+        try {
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource(fileDescriptor, startOffset, length);
+            mediaPlayer.prepare();
+            isPaused = true;
+            if (onPlaybackChangeListener != null) {
+                onPlaybackChangeListener.onDurationChanged(mediaPlayer.getDuration());
+            }
+        } catch (IOException e) {
+            Log.e("MusicPlayer", "Error preparing audio", e);
         }
     }
 
@@ -219,14 +269,13 @@ public class MusicPlayer {
     }
 
     public void seekTo(int position) {
-        if (mediaPlayer != null) {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.seekTo(position);
         }
     }
 
     public void resumeFromCurrentPosition() {
         if (mediaPlayer != null && !isPaused && !mediaPlayer.isPlaying()) {
-            // Восстановление позиции и возобновление воспроизведения
             mediaPlayer.seekTo(getCurrentPosition());
             mediaPlayer.start();
             isPaused = false;
@@ -239,44 +288,33 @@ public class MusicPlayer {
     public void saveTrackData(String trackPath, int position, Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("lastTrack", trackPath); // Сохраняем путь к последнему треку
-        editor.putInt("lastPosition", position);   // Сохраняем позицию в миллисекундах
+        editor.putString("lastTrack", trackPath);
+        editor.putInt("lastPosition", position);
         editor.apply();
     }
 
-
-
     public void loadTrackData() {
         SharedPreferences sharedPreferences = context.getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE);
-        String trackPath = sharedPreferences.getString("lastTrack", "");  // Получаем путь последнего трека
-        int position = sharedPreferences.getInt("lastPosition", 0);         // Получаем последнюю сохраненную позицию
+        String trackPath = sharedPreferences.getString("lastTrack", "");
+        int position = sharedPreferences.getInt("lastPosition", 0);
 
         if (trackPath != null && position > 0) {
-            play(trackPath); // Загружаем трек
-            seekTo(position); // Устанавливаем позицию
-        } else {
-
+            play(trackPath);
+            seekTo(position);
         }
     }
 
     public void loadTrackData(MaterialTextView statusTextView) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE);
-        String trackPath = sharedPreferences.getString("lastTrack", null);  // Получаем путь последнего трека
-        int position = sharedPreferences.getInt("lastPosition", 0);         // Получаем последнюю сохраненную позицию
+        String trackPath = sharedPreferences.getString("lastTrack", null);
+        int position = sharedPreferences.getInt("lastPosition", 0);
 
         if (trackPath != null && position > 0) {
-            play(trackPath); // Загружаем трек
-            seekTo(position); // Устанавливаем позицию
+            play(trackPath);
+            seekTo(position);
         } else {
-            // Если нет сохраненного трека, отображаем текст "Ничего не воспроизводится"
-            // Устанавливаем значение позиции как 0
-            Log.d("MusicPlayer", "Nothing is playing. Displaying default text and setting position to 0.");
-
-            // Здесь вы можете обновить UI для отображения "Ничего не воспроизводится"
-            // Например:
             statusTextView.setText("Ничего не воспроизводится");
-
-            seekTo(0); // Устанавливаем позицию на 0
+            seekTo(0);
         }
     }
 
@@ -296,11 +334,11 @@ public class MusicPlayer {
         void onResumed();
 
         void onStopped();
+
         void onCompleted();
 
         void onProgressChanged(int progress);
 
         void onDurationChanged(int duration);
     }
-
 }
