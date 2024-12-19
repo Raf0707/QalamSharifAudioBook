@@ -124,8 +124,21 @@ public class SurasFragment extends Fragment {
         // Обработка слайдера
         binding.sliderVert.addOnChangeListener((slider, value, fromUser) -> {
             if (fromUser) {
-                exoPlayer.seekTo((long) value);
-                updateCurrentTime((int) value);
+                // Получаем текущую длительность аудиофайла
+                long duration = exoPlayer.getDuration();
+
+                // Проверяем, что значение слайдера не превышает длительность
+                if (value > duration) {
+                    // Устанавливаем значение слайдера на максимум
+                    binding.sliderVert.setValue((float) duration);
+
+                    // Вызываем метод onComplete()
+                    onComplete();
+                } else {
+                    // Если значение корректно, перемещаем позицию воспроизведения
+                    exoPlayer.seekTo((long) value);
+                    updateCurrentTime((int) value);
+                }
             }
         });
 
@@ -239,6 +252,16 @@ public class SurasFragment extends Fragment {
             @Override
             public void onPlaybackStateChanged(int playbackState) {
                 // Этот метод вызывается при изменении состояния воспроизведения
+
+                if (playbackState == ExoPlayer.STATE_ENDED) {
+                    // Обнуляем сохраненное время
+                    SharedPreferences sharedPreferences = requireContext().getSharedPreferences("SuraPlayerPrefs", Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putLong("lastPlayedPosition", 0);
+                    editor.putString("lastSuraFileName", null);
+                    editor.apply();
+                }
+
                 if (playbackState == ExoPlayer.STATE_READY) {
                     // Обновляем UI, когда плеер готов к воспроизведению
                     binding.fullAlbumName.setText(Objects.requireNonNull(exoPlayer.getCurrentMediaItem()).mediaMetadata.title);
@@ -279,6 +302,8 @@ public class SurasFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        restoreLastPlayedSura();
 
         exoPlayer.addListener(new Player.Listener() {
             @Override
@@ -402,6 +427,90 @@ public class SurasFragment extends Fragment {
         int seconds = (duration % 60000) / 1000;
         String totalTime = String.format("%02d:%02d", minutes, seconds);
         binding.duration.setText(totalTime);
+    }
+
+    private void onComplete() {
+        // Обнуляем сохраненную позицию
+        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("SuraPlayerPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putLong("lastPlayedPosition", 0);
+        editor.apply();
+
+        // Устанавливаем слайдер на начало
+        exoPlayer.seekTo(0);
+        binding.sliderVert.setValue(0);
+
+        // Скрываем BottomSheet (если нужно)
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+        // Обновляем UI
+        binding.fullAlbumName.setText("");
+        updateCurrentTime(0);
+        updateTotalTime(0);
+
+        // Переходим к следующей суре (если нужно)
+        /*int currentIndex = getCurrentTrackIndex();
+        if (currentIndex < getTotalTracks() - 1) {
+            String nextFileName = String.format("%03d.mp3", currentIndex + 2);
+            playFile(nextFileName);
+        }*/
+    }
+
+    private void restoreLastPlayedSura() {
+        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("SuraPlayerPrefs", Context.MODE_PRIVATE);
+
+        // Получаем имя файла последней воспроизведенной суры
+        String lastSuraFileName = sharedPreferences.getString("lastSuraFileName", null);
+
+        // Получаем последнюю позицию воспроизведения
+        long lastPlayedPosition = sharedPreferences.getLong("lastPlayedPosition", 0);
+
+        if (lastSuraFileName != null) {
+            // Устанавливаем BottomSheet в раскрытое состояние
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            binding.slideDown.setIconResource(R.drawable.ic_expand_more);
+
+            // Воспроизводим последнюю суру
+            globalFileName = lastSuraFileName;
+            playFile(lastSuraFileName);
+
+            // Устанавливаем позицию воспроизведения
+            exoPlayer.seekTo(lastPlayedPosition);
+
+            // Устанавливаем паузу после восстановления
+            exoPlayer.pause();
+
+            // Обновляем UI
+            int suraIndex = Integer.parseInt(lastSuraFileName.replace(".mp3", "")) - 1;
+            binding.fullAlbumName.setText(getSuraNames()[suraIndex]);
+
+            // Убедимся, что длительность аудиофайла установлена
+            exoPlayer.addListener(new Player.Listener() {
+                @Override
+                public void onPlaybackStateChanged(int playbackState) {
+                    if (playbackState == ExoPlayer.STATE_READY) {
+                        // Установим значение слайдера только после того, как длительность будет известна
+                        long duration = exoPlayer.getDuration();
+                        if (lastPlayedPosition >= 0 && lastPlayedPosition <= duration) {
+                            binding.sliderVert.setValue((float) lastPlayedPosition);
+                            binding.sliderVert.setValueTo((float) duration);
+                            updateCurrentTime((int) lastPlayedPosition);
+                            updateTotalTime((int) duration);
+                        }
+
+                        if (exoPlayer.isPlaying()) {
+                            exoPlayer.pause();
+                            updatePlayButtonIcon(); // Обновляем иконку кнопки
+                        }
+                    }
+
+                    if (playbackState == ExoPlayer.STATE_ENDED) {
+                        // Вызываем метод onComplete(), когда воспроизведение завершено
+                        onComplete();
+                    }
+                }
+            });
+        }
     }
 
     private final Runnable updateProgressTask = new Runnable() {
@@ -666,6 +775,25 @@ public class SurasFragment extends Fragment {
                 "Рассвет",
                 "Люди"
         };
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        saveLastPlayedSura();
+    }
+
+    private void saveLastPlayedSura() {
+        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("SuraPlayerPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        // Сохраняем имя файла текущей суры
+        editor.putString("lastSuraFileName", globalFileName);
+
+        // Сохраняем текущую позицию воспроизведения
+        editor.putLong("lastPlayedPosition", exoPlayer.getCurrentPosition());
+
+        editor.apply();
     }
 
 
