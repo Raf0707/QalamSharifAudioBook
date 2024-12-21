@@ -157,25 +157,35 @@ public class SurasFragment extends Fragment {
         });
 
         // Обработка кнопок перемотки и переключения треков
-        binding.sheetPreviousSong.setOnClickListener(v -> {
+        /*binding.sheetPreviousSong.setOnClickListener(v -> {
             int currentIndex = getCurrentTrackIndex();
             if (currentIndex > 0) {
-                String previousFileName = String.format("%03d.mp3", currentIndex);
+                String previousFileName = String.format("%03d.mp3", currentIndex - 1); // Исправлено
+                playFile(previousFileName);
+            } else {
+                currentIndex = 2;
+                String previousFileName = String.format("%03d.mp3", currentIndex - 1); // Исправлено
                 playFile(previousFileName);
             }
+            binding.suraNameMini.setText(sures[currentIndex - 1]);
         });
 
         binding.sheetNextSong.setOnClickListener(v -> {
             int currentIndex = getCurrentTrackIndex();
             if (currentIndex < getTotalTracks() - 1) {
-                String nextFileName = String.format("%03d.mp3", currentIndex + 2);
+                String nextFileName = String.format("%03d.mp3", currentIndex + 1); // Исправлено
+                playFile(nextFileName);
+            } else {
+                currentIndex = getTotalTracks() - 1;
+                String nextFileName = String.format("%03d.mp3", currentIndex); // Исправлено
                 playFile(nextFileName);
             }
-        });
+            binding.suraNameMini.setText(sures[currentIndex + 1]);
+        });*/
 
         binding.rewindBack.setOnClickListener(v -> {
             long currentPosition = exoPlayer.getCurrentPosition();
-            long newPosition = Math.max(0, currentPosition - 10000); // Перемотка на 10 секунд назад
+            long newPosition = Math.max(0, currentPosition - 5000); // Перемотка на 10 секунд назад
             exoPlayer.seekTo(newPosition);
 
             // Если плеер на паузе, не начинаем воспроизведение
@@ -186,7 +196,7 @@ public class SurasFragment extends Fragment {
 
         binding.rewindForward.setOnClickListener(v -> {
             long currentPosition = exoPlayer.getCurrentPosition();
-            long newPosition = Math.min(exoPlayer.getDuration(), currentPosition + 10000); // Перемотка на 10 секунд вперед
+            long newPosition = Math.min(exoPlayer.getDuration(), currentPosition + 5000); // Перемотка на 10 секунд вперед
             exoPlayer.seekTo(newPosition);
 
             // Если плеер на паузе, не начинаем воспроизведение
@@ -278,7 +288,11 @@ public class SurasFragment extends Fragment {
 
                 if (playbackState == ExoPlayer.STATE_READY) {
                     // Обновляем UI, когда плеер готов к воспроизведению
-                    binding.suraNameMini.setText(Objects.requireNonNull(exoPlayer.getCurrentMediaItem()).mediaMetadata.title);
+                    MediaItem currentMediaItem = exoPlayer.getCurrentMediaItem();
+                    if (currentMediaItem != null) {
+                        binding.suraNameMini.setText(currentMediaItem.mediaMetadata.title);
+                    }
+                    //binding.suraNameMini.setText(Objects.requireNonNull(exoPlayer.getCurrentMediaItem()).mediaMetadata.title);
                     binding.sliderVert.setValue((int) exoPlayer.getCurrentPosition());
                     binding.sliderVert.setValueTo((int) exoPlayer.getDuration());
                     updateCurrentTime((int) exoPlayer.getCurrentPosition());
@@ -411,6 +425,8 @@ public class SurasFragment extends Fragment {
             // Создаем MediaItem с использованием URI
             MediaItem mediaItem = MediaItem.fromUri(assetUri);
 
+            exoPlayer.clearMediaItems();
+
             // Устанавливаем MediaItem в ExoPlayer
             exoPlayer.setMediaItem(mediaItem);
 
@@ -421,6 +437,8 @@ public class SurasFragment extends Fragment {
             exoPlayer.play();
 
             setSuraNameInTextView(surahFileName);
+
+            binding.suraNameMini.setText(setSuraNameInText(globalFileName));
 
         } catch (Exception e) {
             Log.e("FullPlayer", "Ошибка загрузки файла суры: " + surahFileName, e);
@@ -560,9 +578,26 @@ public class SurasFragment extends Fragment {
         }
     };
 
-    private int getCurrentTrackIndex() {
+    /*private int getCurrentTrackIndex() {
         // Логика для получения текущего индекса трека
         return Integer.parseInt(globalFileName.replace(".mp3", "")) - 1;
+    }*/
+    private int getCurrentTrackIndex() {
+        MediaItem currentMediaItem = exoPlayer.getCurrentMediaItem();
+        if (currentMediaItem != null) {
+            Uri currentUri = currentMediaItem.localConfiguration.uri;
+            if (currentUri != null) {
+                String fileName = currentUri.getLastPathSegment();
+                if (fileName != null && fileName.endsWith(".mp3")) {
+                    try {
+                        return Integer.parseInt(fileName.replace(".mp3", ""));
+                    } catch (NumberFormatException e) {
+                        Log.e("TrackSwitch", "Failed to parse track index from file name: " + fileName, e);
+                    }
+                }
+            }
+        }
+        return -1;
     }
 
     private int getTotalTracks() {

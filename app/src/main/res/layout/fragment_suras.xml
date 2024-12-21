@@ -207,8 +207,8 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/sheet_mid_button"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
+                    android:layout_width="90dp"
+                    android:layout_height="90dp"
                     android:layout_centerHorizontal="true"
                     android:layout_marginTop="18dp"
                     android:background="@drawable/bg_play_anim"
@@ -236,6 +236,7 @@
                     android:layout_toStartOf="@id/sheet_mid_button"
                     android:background="@drawable/rp_buttons_dynamic"
                     android:insetLeft="0dp"
+                    android:visibility="gone"
                     android:insetTop="0dp"
                     android:insetRight="0dp"
                     android:insetBottom="0dp"
@@ -253,8 +254,8 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/rewind_back"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
+                    android:layout_width="90dp"
+                    android:layout_height="90dp"
                     android:layout_gravity="center"
                     android:layout_marginEnd="8dp"
                     android:layout_toStartOf="@id/sheet_mid_button"
@@ -263,7 +264,7 @@
                     android:insetTop="0dp"
                     android:insetRight="0dp"
                     android:insetBottom="0dp"
-                    app:icon="@drawable/rewind_back"
+                    app:icon="@drawable/replay_5"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
                     app:iconSize="38sp"
@@ -284,6 +285,7 @@
                     android:layout_toEndOf="@id/sheet_mid_button"
                     android:background="@drawable/rp_buttons_dynamic"
                     android:insetLeft="0dp"
+                    android:visibility="gone"
                     android:insetTop="0dp"
                     android:insetRight="0dp"
                     android:insetBottom="0dp"
@@ -301,8 +303,8 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/rewind_forward"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
+                    android:layout_width="90dp"
+                    android:layout_height="90dp"
                     android:layout_gravity="center"
                     android:layout_marginStart="8dp"
                     android:layout_toEndOf="@id/sheet_mid_button"
@@ -311,7 +313,7 @@
                     android:insetTop="0dp"
                     android:insetRight="0dp"
                     android:insetBottom="0dp"
-                    app:icon="@drawable/rewind_forward"
+                    app:icon="@drawable/forward_5"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
                     app:iconSize="38sp"
