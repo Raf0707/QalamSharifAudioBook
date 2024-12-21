@@ -171,11 +171,11 @@ public class SurasFragment extends Fragment {
             }
         });
 
-        /*SurasFragment surasFragment = new SurasFragment();
+        SurasFragment surasFragment = new SurasFragment();
         surasFragment.setOnSuraChangedListener(suraName -> {
             // Обновляем текст в suraNameMini
             binding.suraNameMini.setText(suraName);
-        });*/
+        });
         // Обработка кнопки перемотки назад
         binding.sheetPreviousSong.setOnClickListener(v -> {
             String previousFileName;
@@ -192,6 +192,8 @@ public class SurasFragment extends Fragment {
             }
 
             playFile(previousFileName);
+            globalFileName = previousFileName;
+            updatePlayButtonIcon();
         });
 
 // Обработка кнопки перемотки вперед
@@ -210,6 +212,8 @@ public class SurasFragment extends Fragment {
             }
 
             playFile(nextFileName);
+            globalFileName = nextFileName;
+            updatePlayButtonIcon();
         });
 
         binding.rewindBack.setOnClickListener(v -> {
@@ -315,6 +319,7 @@ public class SurasFragment extends Fragment {
                     editor.putLong("lastPlayedPosition", 0);
                     editor.putString("lastSuraFileName", null);
                     editor.apply();
+                    updatePlayButtonIcon();
                 }
 
                 if (playbackState == ExoPlayer.STATE_READY) {
@@ -489,6 +494,7 @@ public class SurasFragment extends Fragment {
             binding.sheetMidButton.setIconResource(R.drawable.play_arrow_24px);
         }
         binding.suraNameMini.setText(setSuraNameInText(globalFileName));
+
     }
 
     private void updateCurrentTime(int currentPosition) {
