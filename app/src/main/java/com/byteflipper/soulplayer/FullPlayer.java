@@ -156,9 +156,9 @@ public class FullPlayer extends BottomSheetDialogFragment {
         // Обновление данных песни
         playerViewModel.currentSong.observe(getViewLifecycleOwner(), song -> {
             if (song != null) {
-                binding.fullSongName.setText(song.title);
-                binding.fullSongArtist.setText(song.artist);
-                binding.fullAlbumName.setText(song.album);
+                binding.fullSuraName.setText(song.title);
+                binding.fullSuraQari.setText(song.artist);
+                binding.suraNameMini.setText(song.album);
 
                 try {
                     Bitmap albumArt = getAlbumArt(song.data);

@@ -80,6 +80,8 @@ public class SurasFragment extends Fragment {
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerView.setAdapter(adapter);
 
+        loadTrackTitle(binding.suraNameMini, sures);
+
         // Обработка кликов на RecyclerView
         binding.recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(
                 getContext(),
@@ -92,13 +94,25 @@ public class SurasFragment extends Fragment {
                         String surahFileName = String.format("%03d.mp3", surahIndex);
                         globalFileName = surahFileName;
 
-                        binding.fullAlbumName.setText(sures[position]);
+                        binding.suraNameMini.setText(sures[position]);
+                        Log.d("SuraName", "Setting text: " + sures[position]);
 
-                        // Открытие BottomSheet
-                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-
-                        // Загрузка и проигрывание файла
-                        playFile(surahFileName);
+                        // Проверяем, играет ли уже выбранная сура
+                        if (isCurrentTrackN(surahFileName)) {
+                            // Если выбранная сура уже играет, продолжаем воспроизведение
+                            if (exoPlayer.isPlaying()) {
+                                // Просто выдвигаем боттом-шит
+                                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                            } else {
+                                // Если сура закончила воспроизводиться, начинаем её заново
+                                playFile(surahFileName);
+                                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                            }
+                        } else {
+                            // Если выбрана другая сура, заменяем текущий трек на новый
+                            setNewMediaItem(surahFileName);
+                            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                        }
                     }
 
                     @Override
@@ -227,7 +241,7 @@ public class SurasFragment extends Fragment {
                 // Этот метод вызывается при переходе на новый трек
                 if (mediaItem != null) {
                     // Обновляем название трека
-                    binding.fullAlbumName.setText(mediaItem.mediaMetadata.title);
+                    binding.suraNameMini.setText(mediaItem.mediaMetadata.title);
 
                     // Обновляем прогресс и длительность
                     binding.sliderVert.setValue((int) exoPlayer.getCurrentPosition());
@@ -264,12 +278,13 @@ public class SurasFragment extends Fragment {
 
                 if (playbackState == ExoPlayer.STATE_READY) {
                     // Обновляем UI, когда плеер готов к воспроизведению
-                    binding.fullAlbumName.setText(Objects.requireNonNull(exoPlayer.getCurrentMediaItem()).mediaMetadata.title);
+                    binding.suraNameMini.setText(Objects.requireNonNull(exoPlayer.getCurrentMediaItem()).mediaMetadata.title);
                     binding.sliderVert.setValue((int) exoPlayer.getCurrentPosition());
                     binding.sliderVert.setValueTo((int) exoPlayer.getDuration());
                     updateCurrentTime((int) exoPlayer.getCurrentPosition());
                     updateTotalTime((int) exoPlayer.getDuration());
                     //binding.sheetMidButton.setIconResource(R.drawable.pause_24px);
+                    binding.suraNameMini.setText(setSuraNameInText(globalFileName));
 
                     updatePlayButtonIcon();
                     // Запускаем анимацию обложки (если есть)
@@ -279,6 +294,7 @@ public class SurasFragment extends Fragment {
                     // Если плеер не готов, устанавливаем иконку паузы
                     //binding.sheetMidButton.setIconResource(R.drawable.play_arrow_24px);
                 }
+                binding.suraNameMini.setText(setSuraNameInText(globalFileName));
             }
 
             @Override
@@ -304,6 +320,7 @@ public class SurasFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         restoreLastPlayedSura();
+        binding.suraNameMini.setText(setSuraNameInText(globalFileName));
 
         exoPlayer.addListener(new Player.Listener() {
             @Override
@@ -311,7 +328,7 @@ public class SurasFragment extends Fragment {
                 // Этот метод вызывается при переходе на новый трек
                 if (mediaItem != null) {
                     // Обновляем название трека
-                    binding.fullAlbumName.setText(mediaItem.mediaMetadata.title);
+                    binding.suraNameMini.setText(mediaItem.mediaMetadata.title);
 
                     // Обновляем прогресс и длительность
                     binding.sliderVert.setValue((int) exoPlayer.getCurrentPosition());
@@ -338,7 +355,7 @@ public class SurasFragment extends Fragment {
                 // Этот метод вызывается при изменении состояния воспроизведения
                 if (playbackState == ExoPlayer.STATE_READY) {
                     // Обновляем UI, когда плеер готов к воспроизведению
-                    binding.fullAlbumName.setText(Objects.requireNonNull(exoPlayer.getCurrentMediaItem()).mediaMetadata.title);
+                    binding.suraNameMini.setText(Objects.requireNonNull(exoPlayer.getCurrentMediaItem()).mediaMetadata.title);
                     binding.sliderVert.setValue((int) exoPlayer.getCurrentPosition());
                     binding.sliderVert.setValueTo((int) exoPlayer.getDuration());
                     updateCurrentTime((int) exoPlayer.getCurrentPosition());
@@ -402,9 +419,18 @@ public class SurasFragment extends Fragment {
 
             // Начинаем воспроизведение
             exoPlayer.play();
+
+            setSuraNameInTextView(surahFileName);
+
         } catch (Exception e) {
             Log.e("FullPlayer", "Ошибка загрузки файла суры: " + surahFileName, e);
         }
+    }
+
+    private boolean isCurrentTrack(String surahFileName) {
+        // Получаем текущий путь трека
+        String currentTrackPath = globalFileName; // Предполагаем, что globalFileName содержит текущий трек
+        return currentTrackPath != null && currentTrackPath.equals(surahFileName);
     }
 
     private void updatePlayButtonIcon() {
@@ -413,6 +439,7 @@ public class SurasFragment extends Fragment {
         } else {
             binding.sheetMidButton.setIconResource(R.drawable.play_arrow_24px);
         }
+        binding.suraNameMini.setText(setSuraNameInText(globalFileName));
     }
 
     private void updateCurrentTime(int currentPosition) {
@@ -441,10 +468,10 @@ public class SurasFragment extends Fragment {
         binding.sliderVert.setValue(0);
 
         // Скрываем BottomSheet (если нужно)
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        //bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
         // Обновляем UI
-        binding.fullAlbumName.setText("");
+        //binding.suraNameMini.setText("");
         updateCurrentTime(0);
         updateTotalTime(0);
 
@@ -480,9 +507,14 @@ public class SurasFragment extends Fragment {
             // Устанавливаем паузу после восстановления
             exoPlayer.pause();
 
+            binding.suraNameMini.setText(setSuraNameInText(globalFileName));
+            loadTrackTitle(binding.suraNameMini, getSuraNames());
+
             // Обновляем UI
             int suraIndex = Integer.parseInt(lastSuraFileName.replace(".mp3", "")) - 1;
-            binding.fullAlbumName.setText(getSuraNames()[suraIndex]);
+            binding.suraNameMini.setText(getSuraNames()[suraIndex]);
+
+            setSuraNameInTextView(lastSuraFileName);
 
             // Убедимся, что длительность аудиофайла установлена
             exoPlayer.addListener(new Player.Listener() {
@@ -499,7 +531,7 @@ public class SurasFragment extends Fragment {
                         }
 
                         if (exoPlayer.isPlaying()) {
-                            exoPlayer.pause();
+                            //exoPlayer.pause();
                             updatePlayButtonIcon(); // Обновляем иконку кнопки
                         }
                     }
@@ -777,6 +809,73 @@ public class SurasFragment extends Fragment {
         };
     }
 
+    // Метод для замены текущего трека на новый
+    // Метод для замены текущего трека на новый
+    private void setNewMediaItem(String surahFileName) {
+        try {
+            // Создаем URI для ассета
+            Uri assetUri = Uri.parse("asset:///quran/" + surahFileName);
+            Log.d("ExoPlayer", "Asset URI: " + assetUri.toString());
+
+            // Создаем MediaItem с использованием URI
+            MediaItem mediaItem = MediaItem.fromUri(assetUri);
+
+            // Очищаем текущий плейлист
+            exoPlayer.clearMediaItems();
+
+            // Устанавливаем MediaItem в ExoPlayer
+            exoPlayer.setMediaItem(mediaItem);
+
+            // Подготавливаем плеер
+            exoPlayer.prepare();
+
+            // Начинаем воспроизведение
+            if (exoPlayer.getPlaybackState() == Player.STATE_IDLE || exoPlayer.getPlaybackState() == Player.STATE_ENDED) {
+                exoPlayer.prepare();
+            }
+            exoPlayer.play();
+        } catch (Exception e) {
+            Log.e("ExoPlayer", "Ошибка загрузки файла суры: " + surahFileName, e);
+        }
+    }
+
+    private boolean isCurrentTrackN(String surahFileName) {
+        MediaItem currentMediaItem = exoPlayer.getCurrentMediaItem();
+        if (currentMediaItem != null) {
+            Uri currentUri = currentMediaItem.localConfiguration.uri;
+            return currentUri != null && currentUri.toString().endsWith(surahFileName);
+        }
+        return false;
+    }
+
+    private int getSuraIndexFromFileName(String fileName) {
+        // Убираем расширение файла и преобразуем в индекс
+        String suraNumber = fileName.replace(".mp3", "");
+        return Integer.parseInt(suraNumber) - 1; // Индекс начинается с 0
+    }
+
+    private void setSuraNameInTextView(String fileName) {
+        // Получаем индекс суры
+        int suraIndex = getSuraIndexFromFileName(fileName);
+
+        // Получаем название суры из массива sures
+        String suraName = getSuraNames()[suraIndex];
+
+        // Устанавливаем название в TextView
+        binding.suraNameMini.setText(suraName);
+    }
+
+    private String setSuraNameInText(String fileName) {
+        // Получаем индекс суры
+        int suraIndex = getSuraIndexFromFileName(fileName);
+
+        // Получаем название суры из массива sures
+        String suraName = getSuraNames()[suraIndex];
+
+        // Устанавливаем название в TextView
+        return suraName;
+    }
+
     @Override
     public void onPause() {
         super.onPause();
@@ -795,6 +894,44 @@ public class SurasFragment extends Fragment {
 
         editor.apply();
     }
+
+    public void loadTrackTitle(MaterialTextView statusTextView, String[] sures) {
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE);
+        String trackPath = sharedPreferences.getString("lastTrack", null);  // Получаем путь последнего трека
+        int position = sharedPreferences.getInt("lastPosition", 0);         // Получаем последнюю сохраненную позицию
+
+        // Проверка, если данных о треке нет, выводим сообщение
+        if (trackPath != null && position > 0) {
+            // Если путь трека существует и позиция больше 0, загружаем трек и воспроизводим с сохраненной позиции
+            //musicPlayer.play("/assets/quran/"+trackPath); // Загружаем трек
+            //musicPlayer.seekTo(position); // Устанавливаем позицию воспроизведения
+            statusTextView.setText(getSuraNameFromFileName(trackPath, sures)); // Обновляем статус
+        } else {
+            // Если трек не найден, выводим сообщение "Ничего не воспроизводится"
+            statusTextView.setText("Ничего не воспроизводится");
+        }
+    }
+
+    public static String getSuraNameFromFileName(String fileName, String[] sures) {
+        // Убираем расширение файла .mp3 и извлекаем номер
+        String numberStr = fileName.replace(".mp3", "");
+
+        // Преобразуем строку в число
+        try {
+            int number = Integer.parseInt(numberStr);
+
+            // Проверяем, что номер в пределах массива sures[]
+            if (number > 0 && number <= sures.length) {
+                // Возвращаем соответствующую сура из массива sures
+                return sures[number - 1]; // уменьшаем на 1, т.к. индексация в массиве начинается с 0
+            } else {
+                return "Неверный номер суры"; // Если номер выходит за пределы массива
+            }
+        } catch (NumberFormatException e) {
+            return "Неверный формат имени файла"; // Если строка не может быть преобразована в число
+        }
+    }
+
 
 
 }
