@@ -56,6 +56,8 @@ public class SurasFragment extends Fragment {
     private int currentPosition = 0; // Сохраняем позицию
     private String globalFileName = "";
 
+    private OnSuraChangedListener suraChangedListener;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentSurasBinding.inflate(getLayoutInflater());
@@ -122,6 +124,19 @@ public class SurasFragment extends Fragment {
                 }
         ));
 
+        bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                // Обработка изменения состояния BottomSheet
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                // Перехват событий касания
+                bottomSheet.setOnTouchListener((v, event) -> true); // Возвращаем true, чтобы событие не передавалось дальше
+            }
+        });
+
         // Обработка кнопки паузы/воспроизведения
         binding.sheetMidButton.setOnClickListener(v -> {
             if (exoPlayer.isPlaying()) {
@@ -156,32 +171,46 @@ public class SurasFragment extends Fragment {
             }
         });
 
-        // Обработка кнопок перемотки и переключения треков
-        /*binding.sheetPreviousSong.setOnClickListener(v -> {
+        /*SurasFragment surasFragment = new SurasFragment();
+        surasFragment.setOnSuraChangedListener(suraName -> {
+            // Обновляем текст в suraNameMini
+            binding.suraNameMini.setText(suraName);
+        });*/
+        // Обработка кнопки перемотки назад
+        binding.sheetPreviousSong.setOnClickListener(v -> {
+            String previousFileName;
             int currentIndex = getCurrentTrackIndex();
-            if (currentIndex > 0) {
-                String previousFileName = String.format("%03d.mp3", currentIndex - 1); // Исправлено
-                playFile(previousFileName);
+
+            if (currentIndex > 1) {
+                // Если текущая сура не первая, переходим к предыдущей
+                previousFileName = String.format("%03d.mp3", currentIndex - 1);
+                setSuraNameInTextView(previousFileName);
             } else {
-                currentIndex = 2;
-                String previousFileName = String.format("%03d.mp3", currentIndex - 1); // Исправлено
-                playFile(previousFileName);
+                // Если текущая сура первая, переходим к последней
+                previousFileName = String.format("%03d.mp3", currentIndex + 113);
+                setSuraNameInTextView(previousFileName);
             }
-            binding.suraNameMini.setText(sures[currentIndex - 1]);
+
+            playFile(previousFileName);
         });
 
+// Обработка кнопки перемотки вперед
         binding.sheetNextSong.setOnClickListener(v -> {
+            String nextFileName;
             int currentIndex = getCurrentTrackIndex();
+
             if (currentIndex < getTotalTracks() - 1) {
-                String nextFileName = String.format("%03d.mp3", currentIndex + 1); // Исправлено
-                playFile(nextFileName);
+                // Если текущая сура не последняя, переходим к следующей
+                nextFileName = String.format("%03d.mp3", currentIndex + 1);
+                setSuraNameInTextView(nextFileName);
             } else {
-                currentIndex = getTotalTracks() - 1;
-                String nextFileName = String.format("%03d.mp3", currentIndex); // Исправлено
-                playFile(nextFileName);
+                // Если текущая сура последняя, переходим к первой
+                nextFileName = String.format("%03d.mp3", 1);
+                setSuraNameInTextView(nextFileName);
             }
-            binding.suraNameMini.setText(sures[currentIndex + 1]);
-        });*/
+
+            playFile(nextFileName);
+        });
 
         binding.rewindBack.setOnClickListener(v -> {
             long currentPosition = exoPlayer.getCurrentPosition();
@@ -240,8 +269,10 @@ public class SurasFragment extends Fragment {
         binding.slideDown.setOnClickListener(v -> {
             if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                binding.recyclerView.setVisibility(View.VISIBLE);
             } else {
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                binding.recyclerView.setVisibility(View.GONE);
             }
         });
 
@@ -334,7 +365,7 @@ public class SurasFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         restoreLastPlayedSura();
-        binding.suraNameMini.setText(setSuraNameInText(globalFileName));
+        //binding.suraNameMini.setText(setSuraNameInText(globalFileName));
 
         exoPlayer.addListener(new Player.Listener() {
             @Override
@@ -513,6 +544,7 @@ public class SurasFragment extends Fragment {
         if (lastSuraFileName != null) {
             // Устанавливаем BottomSheet в раскрытое состояние
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            binding.recyclerView.setVisibility(View.GONE);
             binding.slideDown.setIconResource(R.drawable.ic_expand_more);
 
             // Воспроизводим последнюю суру
@@ -892,12 +924,18 @@ public class SurasFragment extends Fragment {
     private void setSuraNameInTextView(String fileName) {
         // Получаем индекс суры
         int suraIndex = getSuraIndexFromFileName(fileName);
-
         // Получаем название суры из массива sures
         String suraName = getSuraNames()[suraIndex];
+        if (suraIndex >= 0 && suraIndex < 114) {
+            binding.suraNameMini.setText(suraName);
+        } else {
+            // Обработка ошибки, если индекс выходит за пределы массива
+            binding.suraNameMini.setText("Ошибка: неверный индекс");
+        }
+
 
         // Устанавливаем название в TextView
-        binding.suraNameMini.setText(suraName);
+        //binding.suraNameMini.setText(suraName);
     }
 
     private String setSuraNameInText(String fileName) {
@@ -928,6 +966,10 @@ public class SurasFragment extends Fragment {
         editor.putLong("lastPlayedPosition", exoPlayer.getCurrentPosition());
 
         editor.apply();
+    }
+
+    public void setOnSuraChangedListener(OnSuraChangedListener listener) {
+        this.suraChangedListener = listener;
     }
 
     public void loadTrackTitle(MaterialTextView statusTextView, String[] sures) {
@@ -967,6 +1009,8 @@ public class SurasFragment extends Fragment {
         }
     }
 
-
+    public interface OnSuraChangedListener {
+        void onSuraChanged(String suraName);
+    }
 
 }

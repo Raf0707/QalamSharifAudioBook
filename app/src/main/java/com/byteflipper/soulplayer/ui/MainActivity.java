@@ -15,6 +15,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.byteflipper.soulplayer.R;
 import com.byteflipper.soulplayer.databinding.ActivityMainBinding;
+import com.byteflipper.soulplayer.ui.fragments.SurasFragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textview.MaterialTextView;
@@ -38,7 +39,10 @@ public class MainActivity extends AppCompatActivity {
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        NavigationUI.setupActionBarWithNavController
+                (this, navController, appBarConfiguration);
+
+
     }
 
     @Override
