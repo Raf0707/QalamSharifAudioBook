@@ -42,6 +42,7 @@ import com.google.android.material.textview.MaterialTextView;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -148,6 +149,19 @@ public class SurasFragment extends Fragment {
                 updateTotalTime(duration);
             }
             updatePlayButtonIcon();
+        });
+
+        binding.sheetLoop.setOnClickListener(v -> {
+            // Переключаем состояние кнопки
+            binding.sheetLoop.setChecked(!binding.sheetLoop.isChecked());
+
+            if (binding.sheetLoop.isChecked()) {
+                // Включаем режим очереди
+                setupQueueMode();
+            } else {
+                // Отключаем режим очереди
+                setupSingleTrackMode();
+            }
         });
 
         // Обработка слайдера
@@ -637,6 +651,58 @@ public class SurasFragment extends Fragment {
         }
         return -1;
     }
+
+    private void setupQueueMode() {
+        // Создаем список MediaItem для всех 114 сур
+        List<MediaItem> mediaItems = new ArrayList<>();
+        for (int i = 1; i <= 114; i++) {
+            String fileName = String.format("%03d.mp3", i);
+            Uri assetUri = Uri.parse("asset:///quran/" + fileName);
+            MediaItem mediaItem = MediaItem.fromUri(assetUri);
+            mediaItems.add(mediaItem);
+        }
+
+        // Очищаем текущий плейлист и добавляем все треки
+        exoPlayer.clearMediaItems();
+        exoPlayer.addMediaItems(mediaItems);
+
+        // Подготавливаем плеер
+        exoPlayer.prepare();
+
+        // Устанавливаем обработчик для автоматического переключения треков
+        exoPlayer.addListener(queueModeListener);
+
+        // Обновляем UI
+        updatePlayButtonIcon();
+    }
+
+    private void setupSingleTrackMode() {
+        // Удаляем обработчик для автоматического переключения треков
+        exoPlayer.removeListener(queueModeListener);
+
+        // Очищаем плейлист и добавляем только текущий трек
+        exoPlayer.clearMediaItems();
+        String currentFileName = String.format("%03d.mp3", getCurrentTrackIndex() + 1);
+        Uri assetUri = Uri.parse("asset:///quran/" + currentFileName);
+        MediaItem mediaItem = MediaItem.fromUri(assetUri);
+        exoPlayer.setMediaItem(mediaItem);
+
+        // Подготавливаем плеер
+        exoPlayer.prepare();
+
+        // Обновляем UI
+        updatePlayButtonIcon();
+    }
+
+    private final Player.Listener queueModeListener = new Player.Listener() {
+        @Override
+        public void onPlaybackStateChanged(int playbackState) {
+            if (playbackState == ExoPlayer.STATE_ENDED) {
+                // Переключаемся на следующий трек
+                exoPlayer.seekToNext();
+            }
+        }
+    };
 
     private int getTotalTracks() {
         // Логика для получения общего количества треков

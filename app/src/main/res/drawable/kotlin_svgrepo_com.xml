@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="24dp"
+    android:viewportHeight="32"
+    android:viewportWidth="32"
+    android:width="24dp">
+
+    <!-- Основной перевёрнутый треугольник -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M1.004,1.004h29.992v29.992h-29.992l14.996,-14.996L1.004,1.004z" />
+
+    <!-- Дополнительная стрелка -->
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M15.996,12L22,16L15.996,20L15.996,12z"        />
+</vector>
