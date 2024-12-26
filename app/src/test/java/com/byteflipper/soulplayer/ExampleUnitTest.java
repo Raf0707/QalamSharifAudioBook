@@ -1,4 +1,4 @@
-package com.byteflipper.soulplayer;
+package raf.console.quranplayer;
 
 import org.junit.Test;
 

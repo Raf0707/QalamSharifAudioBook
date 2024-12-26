@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.byteflipper.soulplayer"
+    namespace = "raf.console.quranplayer"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.byteflipper.soulplayer"
+        applicationId = "raf.console.quranplayer"
         minSdk = 27
         targetSdk = 34
         versionCode = 1

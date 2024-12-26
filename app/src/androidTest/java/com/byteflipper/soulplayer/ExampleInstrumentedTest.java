@@ -1,4 +1,4 @@
-package com.byteflipper.soulplayer;
+package raf.console.quranplayer;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.byteflipper.soulplayer", appContext.getPackageName());
+        assertEquals("raf.console.quranplayer", appContext.getPackageName());
     }
 }

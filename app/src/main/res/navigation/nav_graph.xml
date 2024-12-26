@@ -8,7 +8,7 @@
 
     <fragment
         android:id="@+id/surasFragment"
-        android:name="com.byteflipper.soulplayer.ui.fragments.SurasFragment"
+        android:name="raf.console.quranplayer.ui.fragments.SurasFragment"
         android:label="Коран аудио"
         tools:layout="@layout/fragment_suras" >
         <action
@@ -17,7 +17,7 @@
     </fragment>
     <fragment
         android:id="@+id/appAboutFragment"
-        android:name="com.byteflipper.soulplayer.ui.fragments.about_app.AppAboutFragment"
+        android:name="raf.console.quranplayer.ui.fragments.about_app.AppAboutFragment"
         android:label="О приложении"
         tools:layout="@layout/fragment_app_about" />
 

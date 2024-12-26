@@ -21,5 +21,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Soul Player"
+rootProject.name = "Quran Player"
 include(":app")
