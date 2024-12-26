@@ -11,6 +11,14 @@
         android:name="com.byteflipper.soulplayer.ui.fragments.SurasFragment"
         android:label="Коран аудио"
         tools:layout="@layout/fragment_suras" >
+        <action
+            android:id="@+id/action_surasFragment_to_appAboutFragment"
+            app:destination="@id/appAboutFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/appAboutFragment"
+        android:name="com.byteflipper.soulplayer.ui.fragments.about_app.AppAboutFragment"
+        android:label="О приложении"
+        tools:layout="@layout/fragment_app_about" />
 
 </navigation>

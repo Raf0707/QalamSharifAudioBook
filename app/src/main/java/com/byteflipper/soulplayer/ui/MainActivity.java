@@ -54,11 +54,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_search) {
+        /*if (id == R.id.action_search) {
             return true;
-        }
+        }*/
         if (id == R.id.action_settings) {
-            return true;
+            if (id == R.id.action_settings) {
+                // Навигация на AppAboutFragment
+                NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+                navController.navigate(R.id.action_surasFragment_to_appAboutFragment);
+                return true;
+            }
+
         }
         return super.onOptionsItemSelected(item);
     }

@@ -38,6 +38,7 @@ import com.byteflipper.soulplayer.ui.adapters.SurasAdapter;
 import com.byteflipper.soulplayer.utils.RecyclerItemClickListener;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textview.MaterialTextView;
 
 
@@ -58,6 +59,8 @@ public class SurasFragment extends Fragment {
     private String globalFileName = "";
 
     private OnSuraChangedListener suraChangedListener;
+
+    private int currentPlaybackMode = 0; // 0 - play-stop, 1 - queue, 2 - repeat one
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -151,17 +154,30 @@ public class SurasFragment extends Fragment {
             updatePlayButtonIcon();
         });
 
-        binding.sheetLoop.setOnClickListener(v -> {
-            // Переключаем состояние кнопки
-            binding.sheetLoop.setChecked(!binding.sheetLoop.isChecked());
+        binding.sheetMode.setOnClickListener(v -> {
+            //switchPlaybackMode();
+            Snackbar.make(binding.getRoot(), "В следующих реализациях", Snackbar.LENGTH_SHORT)
+                    .show();
+        });
 
-            if (binding.sheetLoop.isChecked()) {
-                // Включаем режим очереди
-                setupQueueMode();
-            } else {
-                // Отключаем режим очереди
-                setupSingleTrackMode();
-            }
+        binding.lyrics.setOnClickListener(v -> {
+            Snackbar.make(binding.getRoot(), "В следующих реализациях", Snackbar.LENGTH_SHORT)
+                    .show();
+        });
+
+        binding.sheetRandom.setOnClickListener(v -> {
+            Snackbar.make(binding.getRoot(), "В следующих реализациях", Snackbar.LENGTH_SHORT)
+                    .show();
+        });
+
+        binding.timer.setOnClickListener(v -> {
+            Snackbar.make(binding.getRoot(), "В следующих реализациях", Snackbar.LENGTH_SHORT)
+                    .show();
+        });
+
+        binding.playlist.setOnClickListener(v -> {
+            Snackbar.make(binding.getRoot(), "В следующих реализациях", Snackbar.LENGTH_SHORT)
+                    .show();
         });
 
         // Обработка слайдера
@@ -174,14 +190,15 @@ public class SurasFragment extends Fragment {
                 if (value > duration) {
                     // Устанавливаем значение слайдера на максимум
                     binding.sliderVert.setValue((float) duration);
-
+                    // Перемещаем позицию воспроизведения на максимум
+                    exoPlayer.seekTo(duration);
                     // Вызываем метод onComplete()
-                    onComplete();
+                    //onComplete();
                 } else {
                     // Если значение корректно, перемещаем позицию воспроизведения
                     exoPlayer.seekTo((long) value);
-                    updateCurrentTime((int) value);
                 }
+                updateCurrentTime((int) value);
             }
         });
 
@@ -338,21 +355,31 @@ public class SurasFragment extends Fragment {
 
                 if (playbackState == ExoPlayer.STATE_READY) {
                     // Обновляем UI, когда плеер готов к воспроизведению
-                    MediaItem currentMediaItem = exoPlayer.getCurrentMediaItem();
-                    if (currentMediaItem != null) {
-                        binding.suraNameMini.setText(currentMediaItem.mediaMetadata.title);
-                    }
-                    //binding.suraNameMini.setText(Objects.requireNonNull(exoPlayer.getCurrentMediaItem()).mediaMetadata.title);
-                    binding.sliderVert.setValue((int) exoPlayer.getCurrentPosition());
-                    binding.sliderVert.setValueTo((int) exoPlayer.getDuration());
-                    updateCurrentTime((int) exoPlayer.getCurrentPosition());
-                    updateTotalTime((int) exoPlayer.getDuration());
-                    //binding.sheetMidButton.setIconResource(R.drawable.pause_24px);
-                    binding.suraNameMini.setText(setSuraNameInText(globalFileName));
+                    if (playbackState == ExoPlayer.STATE_READY) {
+                        // Обновляем UI, когда плеер готов к воспроизведению
+                        MediaItem currentMediaItem = exoPlayer.getCurrentMediaItem();
+                        if (currentMediaItem != null) {
+                            binding.suraNameMini.setText(currentMediaItem.mediaMetadata.title);
+                        }
 
-                    updatePlayButtonIcon();
-                    // Запускаем анимацию обложки (если есть)
-                    // showCurrentArtwork();
+                        // Получаем текущую позицию и длительность
+                        int currentPosition = (int) exoPlayer.getCurrentPosition();
+                        int totalDuration = (int) exoPlayer.getDuration();
+
+                        // Проверяем, что длительность больше 0
+                        if (totalDuration > 0) {
+                            // Проверяем, что текущая позиция не превышает длительность
+                            if (currentPosition > totalDuration) {
+                                currentPosition = totalDuration; // Устанавливаем на максимум
+                            }
+
+                            binding.sliderVert.setValue(currentPosition);
+                            binding.sliderVert.setValueTo(totalDuration);
+                            updateCurrentTime(currentPosition);
+                            updateTotalTime(totalDuration);
+                            updatePlayButtonIcon();
+                        }
+                    }
 
                 } else {
                     // Если плеер не готов, устанавливаем иконку паузы
@@ -383,7 +410,14 @@ public class SurasFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Восстанавливаем последний воспроизводимый трек
         restoreLastPlayedSura();
+
+        // Восстанавливаем текущий режим воспроизведения
+        restorePlaybackMode();
+
+        // Обновляем UI
+        //updatePlayButtonIcon();
         //binding.suraNameMini.setText(setSuraNameInText(globalFileName));
 
         exoPlayer.addListener(new Player.Listener() {
@@ -621,10 +655,18 @@ public class SurasFragment extends Fragment {
             if (exoPlayer != null && exoPlayer.isPlaying()) {
                 int currentPosition = (int) exoPlayer.getCurrentPosition();
                 int totalDuration = (int) exoPlayer.getDuration();
+
+                // Проверяем, что длительность больше 0
                 if (totalDuration > 0) {
+                    // Проверяем, что текущая позиция не превышает длительность
+                    if (currentPosition > totalDuration) {
+                        currentPosition = totalDuration; // Устанавливаем на максимум
+                    }
+
                     binding.sliderVert.setValue(currentPosition);
                     updateCurrentTime(currentPosition);
                 }
+
                 handler.postDelayed(this, 100); // Обновление каждые 100 мс
             }
         }
@@ -652,57 +694,6 @@ public class SurasFragment extends Fragment {
         return -1;
     }
 
-    private void setupQueueMode() {
-        // Создаем список MediaItem для всех 114 сур
-        List<MediaItem> mediaItems = new ArrayList<>();
-        for (int i = 1; i <= 114; i++) {
-            String fileName = String.format("%03d.mp3", i);
-            Uri assetUri = Uri.parse("asset:///quran/" + fileName);
-            MediaItem mediaItem = MediaItem.fromUri(assetUri);
-            mediaItems.add(mediaItem);
-        }
-
-        // Очищаем текущий плейлист и добавляем все треки
-        exoPlayer.clearMediaItems();
-        exoPlayer.addMediaItems(mediaItems);
-
-        // Подготавливаем плеер
-        exoPlayer.prepare();
-
-        // Устанавливаем обработчик для автоматического переключения треков
-        exoPlayer.addListener(queueModeListener);
-
-        // Обновляем UI
-        updatePlayButtonIcon();
-    }
-
-    private void setupSingleTrackMode() {
-        // Удаляем обработчик для автоматического переключения треков
-        exoPlayer.removeListener(queueModeListener);
-
-        // Очищаем плейлист и добавляем только текущий трек
-        exoPlayer.clearMediaItems();
-        String currentFileName = String.format("%03d.mp3", getCurrentTrackIndex() + 1);
-        Uri assetUri = Uri.parse("asset:///quran/" + currentFileName);
-        MediaItem mediaItem = MediaItem.fromUri(assetUri);
-        exoPlayer.setMediaItem(mediaItem);
-
-        // Подготавливаем плеер
-        exoPlayer.prepare();
-
-        // Обновляем UI
-        updatePlayButtonIcon();
-    }
-
-    private final Player.Listener queueModeListener = new Player.Listener() {
-        @Override
-        public void onPlaybackStateChanged(int playbackState) {
-            if (playbackState == ExoPlayer.STATE_ENDED) {
-                // Переключаемся на следующий трек
-                exoPlayer.seekToNext();
-            }
-        }
-    };
 
     private int getTotalTracks() {
         // Логика для получения общего количества треков
@@ -1044,6 +1035,204 @@ public class SurasFragment extends Fragment {
         this.suraChangedListener = listener;
     }
 
+    /*private void switchPlaybackMode() {
+        // Переключаем режим
+        currentPlaybackMode = (currentPlaybackMode + 1) % 3;
+
+        // Сохраняем текущий режим
+        savePlaybackMode(currentPlaybackMode);
+
+        // Текущая позиция воспроизведения
+        long currentPosition = exoPlayer.getCurrentPosition();
+
+        // Устанавливаем соответствующий режим
+        switch (currentPlaybackMode) {
+            case 0:
+                setupPlayStopMode();
+                break;
+            case 1:
+                setupQueueMode();
+                break;
+            case 2:
+                setupRepeatOneMode();
+                break;
+        }
+
+        // Обновляем иконку кнопки
+        updateLoopButtonIcon();
+    }
+
+    private void setupPlayStopMode() {
+        // Удаляем обработчик для автоматического переключения треков
+        exoPlayer.removeListener(queueModeListener);
+
+        // Сохраняем текущую позицию воспроизведения и состояние
+        long currentPosition = exoPlayer.getCurrentPosition();
+        boolean isPlaying = exoPlayer.isPlaying();
+
+        // Очищаем плейлист и добавляем только текущий трек
+        exoPlayer.clearMediaItems();
+        String currentFileName = String.format("%03d.mp3", getCurrentTrackIndex() + 1);
+        Uri assetUri = Uri.parse("asset:///quran/" + currentFileName);
+        MediaItem mediaItem = MediaItem.fromUri(assetUri);
+        exoPlayer.setMediaItem(mediaItem);
+
+        // Подготавливаем плеер
+        exoPlayer.prepare();
+
+        // Восстанавливаем позицию воспроизведения
+        exoPlayer.seekTo(currentPosition);
+
+        // Если плеер был в состоянии воспроизведения, запускаем трек
+        if (isPlaying) {
+            exoPlayer.play();
+        }
+
+        // Устанавливаем обработчик для завершения трека
+        exoPlayer.addListener(new Player.Listener() {
+            @Override
+            public void onPlaybackStateChanged(int playbackState) {
+                if (playbackState == Player.STATE_ENDED) {
+                    // Останавливаем плеер после завершения трека
+                    exoPlayer.stop();
+                }
+            }
+        });
+
+        // Обновляем UI
+        updatePlayButtonIcon();
+    }*/
+
+
+
+    /*private void setupQueueMode() {
+        // Сохраняем текущую позицию и состояние воспроизведения
+        long currentPosition = exoPlayer.getCurrentPosition();
+        boolean isPlaying = exoPlayer.isPlaying();
+        int currentMediaIndex = exoPlayer.getCurrentMediaItemIndex();
+
+        // Удаляем обработчик для других режимов
+        exoPlayer.removeListener(repeatOneListener);
+
+        // Создаем список MediaItem для всех 114 сур, начиная с текущего трека
+        List<MediaItem> mediaItems = new ArrayList<>();
+        for (int i = getCurrentTrackIndex() + 1; i <= 114; i++) { // Треки начиная с текущей суры
+            String fileName = String.format("%03d.mp3", i);
+            Uri assetUri = Uri.parse("asset:///quran/" + fileName);
+            MediaItem mediaItem = MediaItem.fromUri(assetUri);
+            mediaItems.add(mediaItem);
+        }
+
+        // Очищаем текущий плейлист
+        exoPlayer.clearMediaItems();
+
+        // Добавляем треки в плейлист
+        exoPlayer.addMediaItems(mediaItems);
+
+        // Подготавливаем плеер
+        exoPlayer.prepare();
+
+        // Восстанавливаем позицию и текущий трек
+        exoPlayer.seekTo(currentMediaIndex, currentPosition);
+
+        // Если плеер был в состоянии воспроизведения, запускаем трек
+        if (isPlaying) {
+            exoPlayer.play();
+        }
+
+        // Устанавливаем обработчик для автоматического переключения треков
+        exoPlayer.addListener(queueModeListener);
+
+        // Обновляем UI
+        updatePlayButtonIcon();
+    }*/
+
+
+
+    /*private void setupRepeatOneMode() {
+        // Удаляем обработчик для автоматического переключения треков
+        exoPlayer.removeListener(queueModeListener);
+
+        // Сохраняем текущую позицию воспроизведения и состояние
+        long currentPosition = exoPlayer.getCurrentPosition();
+        boolean isPlaying = exoPlayer.isPlaying();
+
+        // Очищаем плейлист и добавляем только текущий трек
+        exoPlayer.clearMediaItems();
+        String currentFileName = String.format("%03d.mp3", getCurrentTrackIndex() + 1);
+        Uri assetUri = Uri.parse("asset:///quran/" + currentFileName);
+        MediaItem mediaItem = MediaItem.fromUri(assetUri);
+        exoPlayer.setMediaItem(mediaItem);
+
+        // Подготавливаем плеер
+        exoPlayer.prepare();
+
+        // Восстанавливаем позицию воспроизведения
+        exoPlayer.seekTo(currentPosition);
+
+        // Если плеер был в состоянии воспроизведения, запускаем трек
+        if (isPlaying) {
+            exoPlayer.play();
+        }
+
+        // Устанавливаем обработчик для повторения текущего трека
+        exoPlayer.addListener(repeatOneListener);
+
+        // Обновляем UI
+        updatePlayButtonIcon();
+    }
+
+
+
+    private final Player.Listener queueModeListener = new Player.Listener() {
+        @Override
+        public void onPlaybackStateChanged(int playbackState) {
+            if (playbackState == ExoPlayer.STATE_ENDED) {
+                // Переключаемся на следующий трек
+                exoPlayer.seekToNext();
+            }
+        }
+
+        @Override
+        public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
+            if (mediaItem != null) {
+                // Получаем имя файла текущего трека
+                String fileName = mediaItem.localConfiguration.uri.getLastPathSegment();
+
+                // Обновляем globalFileName
+                globalFileName = fileName;
+
+                // Обновляем suraNameMini
+                setSuraNameInTextView(fileName);
+            }
+        }
+    };
+
+    private final Player.Listener repeatOneListener = new Player.Listener() {
+        @Override
+        public void onPlaybackStateChanged(int playbackState) {
+            if (playbackState == ExoPlayer.STATE_ENDED) {
+                // Перематываем на начало текущего трека
+                exoPlayer.seekTo(0);
+                exoPlayer.play();
+            }
+        }
+    };
+
+    private void updateLoopButtonIcon() {
+        switch (currentPlaybackMode) {
+            case 0:
+                binding.sheetMode.setIcon(getResources().getDrawable(R.drawable.play_stop));
+                break;
+            case 1:
+                binding.sheetMode.setIcon(getResources().getDrawable(R.drawable.ic_repeat));
+                break;
+            case 2:
+                binding.sheetMode.setIcon(getResources().getDrawable(R.drawable.ic_repeat_one));
+                break;
+        }
+    }*/
+
     public void loadTrackTitle(MaterialTextView statusTextView, String[] sures) {
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE);
         String trackPath = sharedPreferences.getString("lastTrack", null);  // Получаем путь последнего трека
@@ -1059,6 +1248,43 @@ public class SurasFragment extends Fragment {
             // Если трек не найден, выводим сообщение "Ничего не воспроизводится"
             statusTextView.setText("Ничего не воспроизводится");
         }
+    }
+
+    private void savePlaybackMode(int mode) {
+        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("SuraPlayerPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt("playbackMode", mode);
+        editor.apply();
+    }
+
+    private void restorePlaybackMode() {
+        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("SuraPlayerPrefs", Context.MODE_PRIVATE);
+        currentPlaybackMode = sharedPreferences.getInt("playbackMode", 0); // По умолчанию режим play-stop
+
+        // Устанавливаем соответствующий режим
+        /*switch (currentPlaybackMode) {
+            case 0:
+                setupPlayStopMode();
+                break;
+            case 1:
+                setupQueueMode();
+                break;
+            case 2:
+                setupRepeatOneMode();
+                break;
+        }
+
+        // Обновляем иконку кнопки
+        updateLoopButtonIcon();*/
+    }
+
+    private String getCurrentFileName() {
+        MediaItem currentMediaItem = exoPlayer.getCurrentMediaItem();
+        if (currentMediaItem != null) {
+            return currentMediaItem.localConfiguration.uri.getLastPathSegment();
+        }
+        String myFile = globalFileName;
+        return myFile; // Возвращаем последний известный файл
     }
 
     public static String getSuraNameFromFileName(String fileName, String[] sures) {

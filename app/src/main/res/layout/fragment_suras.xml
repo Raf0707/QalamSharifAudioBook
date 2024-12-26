@@ -361,7 +361,7 @@
                     app:iconTint="?attr/colorOnSurface" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/sheet_loop"
+                    android:id="@+id/sheet_mode"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:layout_weight="1"
@@ -373,7 +373,7 @@
                     android:insetBottom="0dp"
                     android:saveEnabled="false"
                     android:tooltipText="@string/repeat_mode"
-                    app:icon="@drawable/play_stop"
+                    app:icon="@drawable/ic_repeat"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
                     app:iconSize="24sp"
@@ -385,7 +385,7 @@
                     android:layout_height="48dp"
                     android:layout_weight="1"
                     android:background="@drawable/rp_buttons"
-                    android:checkable="true"
+                    android:checkable="false"
                     android:insetLeft="0dp"
                     android:insetTop="0dp"
                     android:insetRight="0dp"
@@ -396,7 +396,7 @@
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
                     app:iconSize="24sp"
-                    app:iconTint="@color/sl_check_button" />
+                    app:iconTint="?attr/colorOnSurface" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/favor"
