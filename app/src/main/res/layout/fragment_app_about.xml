@@ -114,6 +114,42 @@
                                 app:iconPadding="16dp"
                                 app:iconSize="24dp" />
 
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/websiteBtn"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Азан.ру"
+                                android:textAlignment="textStart"
+                                android:textSize="20sp"
+                                app:icon="@drawable/web_svgrepo_com"
+                                app:iconPadding="16dp"
+                                app:iconSize="24dp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/downloadQuranBtn"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Скачать аудио"
+                                android:textAlignment="textStart"
+                                android:textSize="20sp"
+                                app:icon="@drawable/download_svgrepo_com__1_"
+                                app:iconPadding="16dp"
+                                app:iconSize="24dp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/tafsirBtn"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Тафсир Корана"
+                                android:textAlignment="textStart"
+                                android:textSize="20sp"
+                                app:icon="@drawable/book"
+                                app:iconPadding="16dp"
+                                app:iconSize="24dp" />
+
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -233,39 +269,99 @@
                                 app:iconPadding="16dp"
                                 app:iconSize="24dp" />
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="От Абу-Дарда (да будет доволен им Аллах) передаётся, что он слышал, как Посланник Божий ﷺ, изрёк: «Когда любой раб Аллаха, исповедующий Ислам, обращается к Аллаху с мольбой за своего отсутствующего брата по вере, ангел, который находится рядом с ним, всегда говорит: И тебе да будет то же!» (имамы Муслим, Абу Давуд)"
-                                android:gravity="left"
-                                android:padding="16dp"
-                                android:textSize="20sp">
-                            </TextView>
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="Делайте дуа за меня, чтобы Аллах мне много ризка дал, чтоб я дом построил и женился скорее"
-                                android:gravity="left"
-                                android:padding="16dp"
-                                android:textSize="20sp">
-                            </TextView>
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="Пусть Аллах введет в рай каждого, кто сделал за меня дуа, а также его семью, родственников и друзей и пусть Аллах избавит всех, кто делает за меня дуа от мучений в могиле, ужасов судного дня и адского огня"
-                                android:gravity="left"
-                                android:padding="16dp"
-                                android:textSize="20sp">
-                            </TextView>
 
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="16dp"
+                    app:cardUseCompatPadding="true">
 
+                    <LinearLayout
+                        android:id="@+id/thanksCardView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
 
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Благодарности"
+                            android:textSize="22sp"
+                            android:gravity="center"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/byteFlipperGitBtn"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="ByteFlipper (GitHub)"
+                            android:textSize="20sp"
+                            app:icon="@drawable/byteflipper_logo"
+                            app:iconPadding="16dp"
+                            app:iconSize="24dp"
+                            android:textAlignment="textStart"
+                            style="@style/Widget.Material3.Button.TextButton" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/byteFlipperWebSiteBtn"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="ByteFlipper (WEB)"
+                            android:textAlignment="textStart"
+                            android:textSize="20sp"
+                            app:icon="@drawable/web_svgrepo_com"
+                            android:onClick="buttonPressed"
+                            app:iconPadding="16dp"
+                            app:iconSize="24dp" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="16dp"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:id="@+id/duaCardView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="От Абу-Дарда (да будет доволен им Аллах) передаётся, что он слышал, как Посланник Божий ﷺ, изрёк: «Когда любой раб Аллаха, исповедующий Ислам, обращается к Аллаху с мольбой за своего отсутствующего брата по вере, ангел, который находится рядом с ним, всегда говорит: И тебе да будет то же!» (имамы Муслим, Абу Давуд)"
+                            android:gravity="left"
+                            android:padding="16dp"
+                            android:textSize="20sp">
+                        </TextView>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Делайте дуа за меня, чтобы Аллах мне много ризка дал, чтоб я квартиру купил, дом построил и женился скорее"
+                            android:gravity="left"
+                            android:padding="16dp"
+                            android:textSize="20sp">
+                        </TextView>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Пусть Аллах введет в рай каждого, кто сделал за меня дуа, а также его семью, родственников и друзей и пусть Аллах избавит всех, кто делает за меня дуа от мучений в могиле, ужасов судного дня и адского огня"
+                            android:gravity="left"
+                            android:padding="16dp"
+                            android:textSize="20sp">
+                        </TextView>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
         </LinearLayout>

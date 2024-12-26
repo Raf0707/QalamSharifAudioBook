@@ -8,13 +8,16 @@ import android.widget.SeekBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.byteflipper.soulplayer.PlayerViewModel;
 import com.byteflipper.soulplayer.R;
 import com.byteflipper.soulplayer.databinding.ActivityMainBinding;
+import com.byteflipper.soulplayer.logic.viewmodel.PlayerViewModelGlobal;
 import com.byteflipper.soulplayer.ui.fragments.SurasFragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
@@ -25,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
 
+    public PlayerViewModelGlobal playerViewModel;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,7 +39,9 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(binding.toolbar);
 
-
+        // Инициализация ViewModel
+        playerViewModel = new ViewModelProvider(this).get(PlayerViewModelGlobal.class);
+        playerViewModel.initializePlayer(this);
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
@@ -74,5 +80,11 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         return NavigationUI.navigateUp(navController, appBarConfiguration)
                 || super.onSupportNavigateUp();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        playerViewModel.releasePlayer();
     }
 }

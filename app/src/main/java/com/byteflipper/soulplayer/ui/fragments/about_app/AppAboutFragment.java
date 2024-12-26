@@ -21,9 +21,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.byteflipper.soulplayer.R;
 import com.byteflipper.soulplayer.databinding.FragmentAppAboutBinding;
+import com.byteflipper.soulplayer.logic.viewmodel.PlayerViewModelGlobal;
 import com.byteflipper.soulplayer.utils.CustomTabUtil;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -34,6 +36,8 @@ public class AppAboutFragment extends Fragment {
     private FragmentAppAboutBinding binding;
     private int iconId;
     public static String selectTheme = "system";
+
+    private PlayerViewModelGlobal playerViewModelGlobal;
 
     private SharedPreferences sPref;
 
@@ -48,6 +52,9 @@ public class AppAboutFragment extends Fragment {
             //binding.themesBtn.setIcon(getResources().getDrawable(iconId));
             Log.d("onCreate", "load " + selectTheme);
         }
+
+        playerViewModelGlobal = new ViewModelProvider(requireActivity())
+                .get(PlayerViewModelGlobal.class);
     }
 
     @SuppressLint("IntentReset")
@@ -135,6 +142,67 @@ public class AppAboutFragment extends Fragment {
                 .openCustomTab(getActivity(),
                         "https://github.com/Raf0707/QuranTajweed",
                         R.color.md_dark_theme_background));
+
+        binding.websiteBtn.setOnClickListener(v -> new CustomTabUtil()
+                .openCustomTab(getActivity(),
+                        "https://azan.ru/",
+                        R.color.md_dark_theme_background));
+
+        binding.websiteBtn.setOnLongClickListener(v -> {
+            addOnClick(v, "Azan.ru site's link copied",
+                    ClipData.newPlainText(getString(R.string.getContext),
+                            "https://azan.ru/"));
+            return true;
+        });
+
+        binding.downloadQuranBtn.setOnClickListener(v -> new CustomTabUtil()
+                .openCustomTab(getActivity(),
+                        "https://azan.ru/audio/view/Koran-karim-235",
+                        R.color.md_dark_theme_background));
+
+        binding.downloadQuranBtn.setOnLongClickListener(v -> {
+            addOnClick(v, "Download Quran's audio link copied",
+                    ClipData.newPlainText(getString(R.string.getContext),
+                            "https://azan.ru/audio/view/Koran-karim-235"));
+            return true;
+        });
+
+        binding.tafsirBtn.setOnClickListener(v -> new CustomTabUtil()
+                .openCustomTab(getActivity(),
+                        "https://azan.ru/tafsir",
+                        R.color.md_dark_theme_background));
+
+        binding.tafsirBtn.setOnLongClickListener(v -> {
+            addOnClick(v, "Quran's Tafsir link copied",
+                    ClipData.newPlainText(getString(R.string.getContext),
+                            "https://azan.ru/tafsir"));
+            return true;
+        });
+
+        binding.byteFlipperGitBtn.setOnClickListener(v -> new CustomTabUtil()
+                .openCustomTab(getActivity(),
+                        "https://github.com/ByteFlipper-58",
+                        R.color.md_dark_theme_background));
+
+        binding.byteFlipperGitBtn.setOnLongClickListener(v -> {
+            addOnClick(v, "Quran's Tafsir link copied",
+                    ClipData.newPlainText(getString(R.string.getContext),
+                            "https://github.com/ByteFlipper-58"));
+            return true;
+        });
+
+        binding.byteFlipperWebSiteBtn.setOnClickListener(v -> new CustomTabUtil()
+                .openCustomTab(getActivity(),
+                        "https://byteflipper.web.app/",
+                        R.color.md_dark_theme_background));
+
+        binding.byteFlipperWebSiteBtn.setOnLongClickListener(v -> {
+            addOnClick(v, "Quran's Tafsir link copied",
+                    ClipData.newPlainText(getString(R.string.getContext),
+                            "https://byteflipper.web.app/"));
+            return true;
+        });
+
 
         binding.rafailBtn.setOnClickListener(v -> new CustomTabUtil()
                 .openCustomTab(getActivity(),

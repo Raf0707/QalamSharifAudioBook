@@ -2,6 +2,7 @@ package com.byteflipper.soulplayer.ui.fragments;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
@@ -34,7 +35,9 @@ import com.byteflipper.soulplayer.PlayerViewModel;
 import com.byteflipper.soulplayer.R;
 import com.byteflipper.soulplayer.databinding.FragmentSurasBinding;
 import com.byteflipper.soulplayer.logic.PlaybackService;
+import com.byteflipper.soulplayer.logic.viewmodel.PlayerViewModelGlobal;
 import com.byteflipper.soulplayer.ui.adapters.SurasAdapter;
+import com.byteflipper.soulplayer.ui.service.PlayerService;
 import com.byteflipper.soulplayer.utils.RecyclerItemClickListener;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -60,7 +63,18 @@ public class SurasFragment extends Fragment {
 
     private OnSuraChangedListener suraChangedListener;
 
+    private PlayerViewModelGlobal playerViewModelGlobal;
+
+
+
     private int currentPlaybackMode = 0; // 0 - play-stop, 1 - queue, 2 - repeat one
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        playerViewModelGlobal = new ViewModelProvider(requireActivity())
+                .get(PlayerViewModelGlobal.class);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -68,6 +82,10 @@ public class SurasFragment extends Fragment {
 
         // Инициализация ExoPlayer
         exoPlayer = new ExoPlayer.Builder(requireContext()).build();
+        //exoPlayer = playerViewModelGlobal.getExoPlayer();
+
+        Intent serviceIntent = new Intent(requireContext(), PlayerService.class);
+        requireContext().startService(serviceIntent);
 
         // Настройка BottomSheet
         FrameLayout bottomSheet = binding.getRoot().findViewById(R.id.quranMP3Player);
@@ -336,6 +354,7 @@ public class SurasFragment extends Fragment {
                     if (!exoPlayer.isPlaying()) {
                         exoPlayer.play();
                     }
+
                 }
             }
 
