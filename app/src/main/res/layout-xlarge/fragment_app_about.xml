@@ -43,33 +43,44 @@
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="120dp"
+                            android:layout_height="140dp"
                             android:layout_gravity="center|center_vertical"
-                            android:orientation="vertical"
+                            android:orientation="horizontal"
                             android:padding="8dp">
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="50dp"
-                                android:gravity="center"
-                                android:text="Quran Player"
-                                android:textSize="20sp"
-                                android:textStyle="bold" />
+                            <ImageView
+                                android:layout_width="120dp"
+                                android:layout_height="120dp"
+                                android:src="@mipmap/ic_launcher_qalam_sharif_round"
+                                android:background="@drawable/rounded_corners"
+                                android:clipToOutline="true" />
 
-                            <TextView
+
+                            <LinearLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="50dp"
-                                android:gravity="center"
-                                android:text="@string/from_tabiin"
-                                android:textSize="20sp"
-                                android:textStyle="bold" />
+                                android:layout_height="120dp"
+                                android:layout_gravity="center|center_vertical"
+                                android:orientation="vertical"
+                                android:padding="8dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="50dp"
+                                    android:gravity="center"
+                                    android:text="Калям Шариф (Аудио)"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="50dp"
+                                    android:gravity="center"
+                                    android:text="R&amp;R"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
+
+                            </LinearLayout>
                         </LinearLayout>
-
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="400dp"
-                            android:src="@drawable/quran_karim" />
-
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -137,6 +148,19 @@
                                 app:icon="@drawable/download_svgrepo_com__1_"
                                 app:iconPadding="16dp"
                                 app:iconSize="24dp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/downloadPDFBtn"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Скачать книжную версию (PDF)"
+                                android:textAlignment="textStart"
+                                android:textSize="20sp"
+                                app:icon="@drawable/pdf_24"
+                                app:iconPadding="16dp"
+                                app:iconSize="24dp" />
+
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/tafsirBtn"

@@ -19,9 +19,9 @@
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher_qp"
+        android:icon="@mipmap/ic_launcher_qalam_sharif"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_qp_round"
+        android:roundIcon="@mipmap/ic_launcher_qalam_sharif_round"
         android:supportsRtl="true"
         android:theme="@style/BaseSoulPlayerTheme"
         tools:targetApi="31">

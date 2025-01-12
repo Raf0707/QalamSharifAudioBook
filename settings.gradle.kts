@@ -21,5 +21,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Quran Player"
+rootProject.name = "Калям Шариф (Аудио)"
 include(":app")

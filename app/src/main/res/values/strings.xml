@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Soul Player</string>
+    <string name="app_name">Калям Шариф (Аудио)</string>
     <string name="action_settings">Settings</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
@@ -202,7 +202,7 @@
     <string name="rafail_url" translatable="false">https://github.com/Raf0707</string>
     <string name="mail_raf" translatable="false">raf_android-dev@mail.ru</string>
 
-    <string name="source_code_url" translatable="false">https://github.com/Raf0707/QuranPlayer</string>
+    <string name="source_code_url" translatable="false">https://github.com/Raf0707/QalamSharifAudioBook</string>
 
     <string name="tabiin" translatable="false">https://vk.com/mahabbaa</string>
 
@@ -245,7 +245,7 @@
     <string name="title_activity_counter_main">CounterMainActivity</string>
     <!-- Strings used for fragments for navigation -->
     <string name="tabiin_android_dev" translatable="false">https://vk.com/mahabbaa</string>
-    <string name="rateApp">https://www.rustore.ru/catalog/app/raf.tabiin.qurantajweed</string>
+    <string name="rateApp">https://www.rustore.ru/catalog/app/raf.console.qalamsharifaudio</string>
     <string name="tabiin_android_develpment">https://vk.link/composabledev</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

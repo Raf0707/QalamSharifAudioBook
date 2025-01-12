@@ -8,17 +8,24 @@
 
     <fragment
         android:id="@+id/surasFragment"
-        android:name="raf.console.quranplayer.ui.fragments.SurasFragment"
-        android:label="Коран аудио"
+        android:name="raf.console.qalamsharifaudio.ui.fragments.SurasFragment"
+        android:label="Калям Шариф (Аудио)"
         tools:layout="@layout/fragment_suras" >
         <action
             android:id="@+id/action_surasFragment_to_appAboutFragment"
             app:destination="@id/appAboutFragment" />
+        <action
+            android:id="@+id/action_surasFragment_self"
+            app:destination="@id/surasFragment" />
     </fragment>
     <fragment
         android:id="@+id/appAboutFragment"
-        android:name="raf.console.quranplayer.ui.fragments.about_app.AppAboutFragment"
+        android:name="raf.console.qalamsharifaudio.ui.fragments.about_app.AppAboutFragment"
         android:label="О приложении"
-        tools:layout="@layout/fragment_app_about" />
+        tools:layout="@layout/fragment_app_about" >
+        <action
+            android:id="@+id/action_appAboutFragment_self"
+            app:destination="@id/appAboutFragment" />
+    </fragment>
 
 </navigation>

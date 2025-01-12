@@ -88,7 +88,7 @@
                     android:layout_height="match_parent"
                     android:contentDescription="@string/dialog_album"
                     android:scaleType="centerCrop"
-                    app:srcCompat="@drawable/quran_karim" />
+                    app:srcCompat="@drawable/ic_app" />
 
             </com.google.android.material.card.MaterialCardView>
 

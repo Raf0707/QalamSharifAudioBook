@@ -3,15 +3,15 @@ plugins {
 }
 
 android {
-    namespace = "raf.console.quranplayer"
+    namespace = "raf.console.qalamsharifaudio"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "raf.console.quranplayer"
+        applicationId = "raf.console.qalamsharifaudio"
         minSdk = 27
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
